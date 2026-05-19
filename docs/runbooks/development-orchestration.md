@@ -5,12 +5,14 @@ configured child repositories.
 
 ## Initial Operator Flow
 
-1. Configure child repositories and stages in `config/workspace.json`.
-2. Initialize a feature directory.
-3. Review or edit the generated intake and status files.
-4. Render the feature manifest.
-5. Run the configured stages one repository at a time.
-6. Collect GitHub state and evaluate mergeability.
+1. In a product fork, create `config/workspace.json` from
+   `config/workspace.example.json`.
+2. Configure child repositories and stages in `config/workspace.json`.
+3. Initialize a feature directory.
+4. Review or edit the generated intake and status files.
+5. Render the feature manifest.
+6. Run the configured stages one repository at a time.
+7. Collect GitHub state and evaluate mergeability.
 
 ## Example Local Dry Run
 
@@ -34,11 +36,19 @@ bash scripts/orchestration/evaluate-mergeability.sh features/FEAT-0001
      --pr-number <number>
    ```
 
-2. `run-speckit-stage.sh` reads `config/workspace.json` and invokes `codex exec`
-   in the mapped child repository.
+2. `run-speckit-stage.sh` reads the resolved workspace config and invokes
+   `codex exec` in the mapped child repository.
 
 3. The stage runner passes the control-repo intake into the child repository
    prompt and tells Codex which configured skill to use.
 
+## Configuration Resolution
+
 Use `--config <path>` with any orchestration command when validating an
 alternate product workspace configuration.
+
+Without `--config`, orchestration commands resolve configuration in this order:
+
+1. explicit `--config <path>`
+2. fork-owned `config/workspace.json`
+3. upstream `config/workspace.example.json` for template examples, demos, and tests

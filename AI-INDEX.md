@@ -18,13 +18,23 @@ feature state, orchestration scripts, and mergeability evaluation.
 
 | Path | Ownership |
 | --- | --- |
-| `config/workspace.json` | Active child repository, stage, skill, and merge-gate configuration. |
-| `features/` | Generated or example feature orchestration state. |
+| `config/workspace.example.json` | Example child repository, stage, skill, and merge-gate configuration for template demos and tests. |
 | `schemas/` | Root feature-state schemas. |
 | `scripts/orchestration/` | Workspace orchestration commands and helpers. |
 | `templates/features/` | Feature intake and status templates. |
 | `templates/handoffs/` | Generic handoff templates for product forks to adapt. |
 | `tests/orchestration/` | Root orchestration script tests. |
+| `docs/` | Generic template runbooks and examples. |
+
+## Fork-Owned Reserved Surfaces
+
+| Path | Ownership |
+| --- | --- |
+| `WORKSPACE.md` | Product-specific fork overlay read after root `AGENTS.md`. |
+| `config/workspace.json` | Active child repository, stage, skill, and merge-gate configuration. |
+| `00-*` through `05-*` | Product fork child repository folders. |
+| `workspace/` | Product fork workspace state. |
+| `overlays/` | Product fork overlays and conventions. |
 
 ## Configured Child Roles
 
@@ -51,6 +61,14 @@ orchestration repository.
 | Runtime implementation | Configured implementation repository |
 | Executable validation | Configured validation repository |
 | Cross-repo routing and mergeability | This root repository |
+
+## Configuration Resolution
+
+Orchestration commands resolve workspace configuration in this order:
+
+1. explicit `--config <path>`
+2. fork-owned `config/workspace.json`
+3. upstream `config/workspace.example.json` for template examples, demos, and tests
 
 ## Generated Outputs
 

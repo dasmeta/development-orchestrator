@@ -8,6 +8,13 @@ that product's child repositories through `config/workspace.json`.
 The root repository owns delivery wiring. It does not own product behavior,
 shared interfaces, runtime implementation, or executable validation details.
 
+## Fork Overlay
+If `WORKSPACE.md` exists in the repository root, read it after this file.
+`WORKSPACE.md` is fork-owned and may define product-specific child repositories,
+routing rules, validation gates, and workspace conventions. Generic upstream
+rules still apply unless the fork overlay narrows them for the product
+workspace.
+
 ## Repository Model
 Each product fork defines its child repositories in `config/workspace.json`.
 The root instructions define:
@@ -112,6 +119,20 @@ This template must stay product-agnostic. Product forks may add overlays for:
 Those overlays belong in the product fork or child repositories, not in the
 central template.
 
+## Template Fork Contract
+The full upstream/fork ownership contract is documented in
+`docs/runbooks/template-fork-contract.md`.
+
+Upstream-owned paths are generic template surfaces: `AGENTS.md`, `AI-INDEX.md`,
+`README.md`, `TODO.md`, `.github/`, `.specify/`, `.agents/`, `scripts/`,
+`schemas/`, `templates/`, `tests/`, `docs/`, and
+`config/workspace.example.json`.
+
+Fork-owned reserved paths are `WORKSPACE.md`, `config/workspace.json`, root
+`00-*` through `05-*` child repository folders, `workspace/`, and `overlays/`.
+Do not create, modify, or assume ownership of those paths in upstream template
+work.
+
 ## When To Stop And Ask
 Stop and ask for clarification if:
 
@@ -134,3 +155,10 @@ Completion means:
 - upstream truth and contracts were respected
 - the target repository's local workflow was followed
 - validation status and any remaining gaps are stated explicitly
+
+## Active Technologies
+- POSIX shell scripts and Markdown documentation + `bash`, `jq`, `rg`, Git (007-template-fork-contract)
+- Repository files only (007-template-fork-contract)
+
+## Recent Changes
+- 007-template-fork-contract: Added template/fork contract guidance and config ownership rules.
