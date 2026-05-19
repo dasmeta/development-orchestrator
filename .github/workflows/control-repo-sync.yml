@@ -1,0 +1,18 @@
+name: control-repo-sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  sync-state:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Describe sync entry point
+        run: |
+          echo "Use scripts/orchestration/collect-github-state.sh as the"
+          echo "single integration point for refreshing feature state."

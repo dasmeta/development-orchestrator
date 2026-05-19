@@ -1,0 +1,27 @@
+name: control-repo-ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  shell-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Ensure jq is available
+        run: jq --version
+
+      - name: Run orchestration shell tests
+        run: |
+          bash tests/orchestration/test-init-feature.sh
+          bash tests/orchestration/test-render-manifest.sh
+          bash tests/orchestration/test-collect-github-state.sh
+          bash tests/orchestration/test-advance-stage.sh
+          bash tests/orchestration/test-run-speckit-stage.sh
+          bash tests/orchestration/test-evaluate-mergeability.sh
+          bash tests/orchestration/test-template-agnostic.sh

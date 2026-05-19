@@ -1,0 +1,95 @@
+{
+  "workspace": {
+    "name": "Development Orchestration Template",
+    "description": "Generic control-plane configuration for routing feature work across product-owned child repositories."
+  },
+  "initial_stage": "definition",
+  "advance_when": {
+    "path": ".pull_request.approved",
+    "equals": true
+  },
+  "repositories": {
+    "intent": {
+      "path": "../intent",
+      "role": "requirements",
+      "description": "Product intent, behavior, acceptance criteria, edge cases, and logical test intent."
+    },
+    "contracts": {
+      "path": "../contracts",
+      "role": "contracts",
+      "description": "Shared interfaces, request/response shapes, schemas, and compatibility rules."
+    },
+    "implementation": {
+      "path": "../implementation",
+      "role": "implementation",
+      "description": "Runtime implementation for the approved intent and contracts."
+    },
+    "validation": {
+      "path": "../validation",
+      "role": "validation",
+      "description": "Executable validation grounded in approved intent and contracts."
+    }
+  },
+  "stages": [
+    {
+      "id": "definition",
+      "repository": "intent",
+      "skill": "speckit-specify"
+    },
+    {
+      "id": "contracts",
+      "repository": "contracts",
+      "skill": "speckit-specify"
+    },
+    {
+      "id": "implementation",
+      "repository": "implementation",
+      "skill": "speckit-implement"
+    },
+    {
+      "id": "validation",
+      "repository": "validation",
+      "skill": "speckit-implement"
+    }
+  ],
+  "github_state": {
+    "check_name_patterns": {
+      "implementation": [
+        "implementation",
+        "build",
+        "test"
+      ],
+      "validation": [
+        "validation",
+        "e2e",
+        "end-to-end"
+      ],
+      "preview": [
+        "preview",
+        "deploy"
+      ]
+    }
+  },
+  "mergeability": {
+    "ready_reason": "all_configured_gates_green",
+    "incomplete_reason": "configured_gates_incomplete",
+    "required": [
+      {
+        "path": ".pull_request.merged",
+        "equals": true
+      },
+      {
+        "path": ".checks.implementation",
+        "equals": "green"
+      },
+      {
+        "path": ".checks.validation",
+        "equals": "green"
+      },
+      {
+        "path": ".preview.status",
+        "equals": "ready"
+      }
+    ]
+  }
+}

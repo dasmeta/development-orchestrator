@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "feature_id",
+    "stage",
+    "status",
+    "blocker"
+  ],
+  "properties": {
+    "feature_id": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "blocker": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
