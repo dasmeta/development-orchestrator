@@ -69,3 +69,9 @@ jq -e '.stage == "definition"' "$feature_dir/state/manifest.json" >/dev/null
 jq -e '.repositories == ["intent","implementation","validation"]' \
   "$feature_dir/state/manifest.json" >/dev/null
 jq -e '.mergeability.ready == false' "$feature_dir/state/manifest.json" >/dev/null
+
+bash "$repo_root/scripts/orchestration/render-manifest.sh" \
+  "$feature_dir"
+
+jq -e '.repositories == ["intent","contracts","implementation","validation"]' \
+  "$feature_dir/state/manifest.json" >/dev/null

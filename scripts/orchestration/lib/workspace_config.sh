@@ -4,7 +4,21 @@ set -euo pipefail
 
 default_workspace_config_path() {
   local script_dir="$1"
-  echo "$script_dir/../../config/workspace.json"
+  local repo_root
+  local active_config
+  local example_config
+
+  repo_root="$(cd "$script_dir/../.." && pwd)"
+  active_config="$repo_root/config/workspace.json"
+  example_config="$repo_root/config/workspace.example.json"
+
+  if [[ -f "$active_config" ]]; then
+    echo "$active_config"
+  elif [[ -f "$example_config" ]]; then
+    echo "$example_config"
+  else
+    echo "$active_config"
+  fi
 }
 
 require_workspace_config() {
