@@ -27,7 +27,7 @@ jq -n '{
     },
     contracts: {
       id: "contracts", name: "Contracts", role: "contracts", description: "Contracts",
-      authority: ["interfaces"], scope: ["product"], dependencies: ["intent"], target_path: "03-shared-contracts",
+      authority: ["interfaces"], scope: ["product"], dependencies: ["intent"], target_path: "03-interface-contracts",
       required: true, remotes: {origin: "git@github.com:example/contracts.git"}
     },
     backend: {
@@ -71,7 +71,7 @@ exact_inventory="$tmp_dir/exact-inventory.json"
 exact_delta="$tmp_dir/exact-delta.json"
 jq -n \
   --arg intent_path "$workspace_root/02-product-requirements" \
-  --arg contracts_path "$workspace_root/03-shared-contracts" \
+  --arg contracts_path "$workspace_root/03-interface-contracts" \
   --arg backend_path "$workspace_root/05-services/backend" \
   '{
     schema_version: 1,

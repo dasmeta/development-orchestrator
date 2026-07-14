@@ -53,3 +53,13 @@ assert_contains "$repo_root/README.md" "Compose A Product Workspace"
 assert_contains "$repo_root/README.md" "docs/runbooks/workspace-bootstrap.md"
 assert_contains "$repo_root/AI-INDEX.md" "workspace-bootstrap"
 assert_contains "$repo_root/AI-INDEX.md" "config/repository-index.json"
+
+for test_command in \
+  "test-discover-workspace.sh" \
+  "test-validate-workspace-proposal.sh" \
+  "test-render-workspace-files.sh" \
+  "test-compare-workspace-inventory.sh" \
+  "test-apply-workspace-proposal.sh" \
+  "test-workspace-bootstrap-guidance.sh"; do
+  assert_contains "$repo_root/.github/workflows/control-repo-ci.yml" "$test_command"
+done

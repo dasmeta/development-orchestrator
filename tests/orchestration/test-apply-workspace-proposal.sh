@@ -48,7 +48,7 @@ jq -n \
       {
         id: "contracts", name: "Contracts", role: "contracts", description: "Shared interfaces.",
         authority: ["interfaces"], scope: ["product"], dependencies: ["intent"], source_path: $contracts_source,
-        target_path: "03-shared-contracts", materialization: "symlink", required: true, dirty: false, allow_dirty: false,
+        target_path: "03-interface-contracts", materialization: "symlink", required: true, dirty: false, allow_dirty: false,
         remotes: {origin: "git@github.com:example/contracts.git"}
       },
       {
@@ -73,7 +73,7 @@ assert_contains "$tmp_dir/dry-run.out" $'symlink\tcontracts'
 assert_contains "$tmp_dir/dry-run.out" $'clone\tbackend'
 [[ -d "$tmp_dir/sources/requirements/.git" ]]
 [[ ! -e "$workspace_root/02-product-requirements" ]]
-[[ ! -e "$workspace_root/03-shared-contracts" ]]
+[[ ! -e "$workspace_root/03-interface-contracts" ]]
 [[ ! -e "$workspace_root/05-services/backend" ]]
 [[ ! -e "$workspace_root/config/workspace.json" ]]
 [[ ! -e "$workspace_root/workspace/bootstrap" ]]
@@ -93,8 +93,8 @@ bash "$apply_script" --proposal "$proposal" --confirm "$token"
 
 [[ ! -e "$tmp_dir/sources/requirements" ]]
 git -C "$workspace_root/02-product-requirements" rev-parse --git-dir >/dev/null
-[[ -L "$workspace_root/03-shared-contracts" ]]
-git -C "$workspace_root/03-shared-contracts" rev-parse --git-dir >/dev/null
+[[ -L "$workspace_root/03-interface-contracts" ]]
+git -C "$workspace_root/03-interface-contracts" rev-parse --git-dir >/dev/null
 git -C "$workspace_root/05-services/backend" rev-parse --git-dir >/dev/null
 git -C "$workspace_root/01-governance" rev-parse --git-dir >/dev/null
 assert_file_exists "$workspace_root/config/repository-index.json"
