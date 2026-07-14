@@ -1,4 +1,33 @@
-# Development Orchestrator
+<p align="center">
+  <a href="https://www.dasmeta.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://a.storyblok.com/f/295271/424783ac50/dasmeta-wordmark-light.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://a.storyblok.com/f/295271/5938d2b888/dasmeta-wordmark-dark.png">
+      <img src="https://a.storyblok.com/f/295271/5938d2b888/dasmeta-wordmark-dark.png" alt="Das Meta" width="220">
+    </picture>
+  </a>
+</p>
+
+<h1 align="center">Development Orchestrator</h1>
+
+<p align="center">
+  Coordinate multi-repository product delivery with explicit ownership,<br>
+  staged workflows, and mergeability evidence.
+</p>
+
+<p align="center">
+  <a href="https://github.com/dasmeta/development-orchestrator/actions/workflows/control-repo-ci.yml">
+    <img src="https://github.com/dasmeta/development-orchestrator/actions/workflows/control-repo-ci.yml/badge.svg" alt="CI">
+  </a>
+</p>
+
+<p align="center">
+  <a href="#compose-a-product-workspace">Quick start</a> ·
+  <a href="#mental-model">How it works</a> ·
+  <a href="#documentation-map">Documentation</a>
+</p>
+
+## Overview
 
 Development Orchestrator is a reusable control repository for a product's
 multi-repository software workspace. Fork it once for a company, product, or
@@ -427,3 +456,11 @@ runs the same orchestration tests on pull requests and pushes to `main`.
 | [Template/fork contract](docs/runbooks/template-fork-contract.md) | Upstream ownership, fork ownership, and safe synchronization |
 | [Requirements-to-UI handoff](docs/runbooks/requirements-to-ui-handoff.md) | Translating approved product intent into bounded UI implementation guidance |
 | [TODO.md](TODO.md) | Known gaps and planned adapters |
+
+---
+
+<p align="center">
+  Maintained by <a href="https://github.com/dasmeta">DasMeta</a> ·
+  <a href="../../issues">Issues and support</a> ·
+  <a href="#documentation-map">Documentation</a>
+</p>
