@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workspace Bootstrap"
+  short_description: "Compose and reconcile product workspaces"
+  default_prompt: "Use $workspace-bootstrap to discover, classify, and safely organize repositories for this product workspace."

@@ -18,3 +18,8 @@
   implementation, and validation.
 - [ ] Add any product-specific runtime or tool-writing guardrails in the fork,
   not in the central template.
+
+## Future Workspace Discovery
+
+- [ ] Add optional authenticated GitHub, GitLab, and Bitbucket inventory adapters
+  after the local-first workspace bootstrap workflow has production evidence.

@@ -21,7 +21,9 @@ feature state, orchestration scripts, and mergeability evaluation.
 | `config/workspace.example.json` | Example child repository, stage, skill, and merge-gate configuration for template demos and tests. |
 | `schemas/` | Root feature-state schemas. |
 | `scripts/orchestration/` | Workspace orchestration commands and helpers. |
+| `.agents/skills/workspace-bootstrap/` | LLM-guided repository discovery, classification, onboarding, and refresh workflow. |
 | `templates/features/` | Feature intake and status templates. |
+| `templates/workspace/` | Generic generated workspace overlay and repository-index templates. |
 | `templates/handoffs/` | Generic handoff templates for product forks to adapt. |
 | `tests/orchestration/` | Root orchestration script tests. |
 | `docs/` | Generic template runbooks and examples. |
@@ -32,6 +34,7 @@ feature state, orchestration scripts, and mergeability evaluation.
 | --- | --- |
 | `WORKSPACE.md` | Product-specific fork overlay read after root `AGENTS.md`. |
 | `config/workspace.json` | Active child repository, stage, skill, and merge-gate configuration. |
+| `config/repository-index.json` | Portable product-fork repository catalog used for onboarding and refresh. |
 | `00-*` through `05-*` | Product fork child repository folders. |
 | `workspace/` | Product fork workspace state. |
 | `overlays/` | Product fork overlays and conventions. |
@@ -75,6 +78,9 @@ Orchestration commands resolve workspace configuration in this order:
 | Output | Location |
 | --- | --- |
 | Feature orchestration state | `features/<feature-id>/` |
+| Local bootstrap inventories, proposals, deltas, and journals | `workspace/bootstrap/` |
+| Portable repository catalog | `config/repository-index.json` |
+| Human/LLM repository index | `overlays/repository-index.md` |
 | Feature manifest | `features/<feature-id>/state/manifest.json` |
 | GitHub state snapshot | `features/<feature-id>/state/github-state.json` |
 | Stage run log | `features/<feature-id>/state/run-log.json` |
@@ -92,6 +98,12 @@ bash tests/orchestration/test-collect-github-state.sh
 bash tests/orchestration/test-advance-stage.sh
 bash tests/orchestration/test-run-speckit-stage.sh
 bash tests/orchestration/test-evaluate-mergeability.sh
+bash tests/orchestration/test-discover-workspace.sh
+bash tests/orchestration/test-validate-workspace-proposal.sh
+bash tests/orchestration/test-render-workspace-files.sh
+bash tests/orchestration/test-compare-workspace-inventory.sh
+bash tests/orchestration/test-apply-workspace-proposal.sh
+bash tests/orchestration/test-workspace-bootstrap-guidance.sh
 ```
 
 Template conformance:

@@ -32,7 +32,21 @@ Fork-owned reserved paths include `WORKSPACE.md`, `config/workspace.json`, root
 See [Template Fork Contract](docs/runbooks/template-fork-contract.md) for the
 full ownership and sync contract.
 
-## Configure A Product Workspace
+## Compose A Product Workspace
+
+Use the `workspace-bootstrap` skill after forking this template to discover and
+classify local Git repositories, review a proposed `00-*` through `05-*`
+topology, and explicitly approve repository moves, links, or clones.
+
+The two-phase workflow generates a portable `config/repository-index.json` and
+`overlays/repository-index.md`. A new team member can use the same index to set
+up missing repositories, and maintainers can refresh it when repositories are
+added or moved.
+
+See [Workspace Bootstrap And Reconciliation](docs/runbooks/workspace-bootstrap.md)
+for initial bootstrap, new-person setup, refresh, confirmation, and recovery.
+
+## Configure A Product Workspace Manually
 
 1. Fork or copy this template into the product workspace.
 2. Copy `config/workspace.example.json` to `config/workspace.json` in the
