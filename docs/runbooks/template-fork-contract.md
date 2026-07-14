@@ -23,6 +23,8 @@ Upstream may create and modify:
 - `README.md`
 - `TODO.md`
 - `.github/`
+- `.gitlab-ci.yml`
+- `bitbucket-pipelines.yml`
 - `.specify/`
 - `.agents/`
 - `scripts/`

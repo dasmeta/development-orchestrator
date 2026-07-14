@@ -124,8 +124,9 @@ The full upstream/fork ownership contract is documented in
 `docs/runbooks/template-fork-contract.md`.
 
 Upstream-owned paths are generic template surfaces: `AGENTS.md`, `AI-INDEX.md`,
-`README.md`, `TODO.md`, `.github/`, `.specify/`, `.agents/`, `scripts/`,
-`schemas/`, `templates/`, `tests/`, `docs/`, and
+`README.md`, `TODO.md`, `.github/`, `.gitlab-ci.yml`,
+`bitbucket-pipelines.yml`, `.specify/`, `.agents/`, `scripts/`, `schemas/`,
+`templates/`, `tests/`, `docs/`, and
 `config/workspace.example.json`.
 
 Fork-owned reserved paths are `WORKSPACE.md`, `config/workspace.json`, root

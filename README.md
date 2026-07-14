@@ -437,13 +437,15 @@ upstream changes into a product fork.
 Run the complete local orchestration suite:
 
 ```bash
-for test_file in tests/orchestration/test-*.sh; do
-  bash "$test_file"
-done
+bash scripts/orchestration/run-ci-tests.sh
 ```
 
-The suite uses temporary Git fixtures and requires no hosted-forge access. CI
-runs the same orchestration tests on pull requests and pushes to `main`.
+The suite uses temporary Git fixtures and requires no hosted-forge access.
+GitHub, GitLab, and Bitbucket invoke this same command for pull or merge
+requests and pushes to the default `main` branch. The committed forge adapters
+need no repository variables, credentials, remote includes, or custom runners.
+The hosting organization must still permit its CI product and provide an
+eligible runner.
 
 ## Documentation Map
 

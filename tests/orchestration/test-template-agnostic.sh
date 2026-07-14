@@ -34,6 +34,8 @@ if rg -n "$forbidden" \
   "$repo_root/templates" \
   "$repo_root/tests" \
   "$repo_root/.github" \
+  "$repo_root/.gitlab-ci.yml" \
+  "$repo_root/bitbucket-pipelines.yml" \
   "$repo_root/.specify" \
   "$repo_root/.agents"; then
   echo "template contains product-specific or local-machine-specific text" >&2

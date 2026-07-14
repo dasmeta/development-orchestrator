@@ -26,6 +26,7 @@ feature state, orchestration scripts, and mergeability evaluation.
 | `templates/workspace/` | Generic generated workspace overlay and repository-index templates. |
 | `templates/handoffs/` | Generic handoff templates for product forks to adapt. |
 | `tests/orchestration/` | Root orchestration script tests. |
+| `.github/workflows/control-repo-ci.yml`, `.gitlab-ci.yml`, `bitbucket-pipelines.yml` | Ready-to-use forge adapters that invoke the shared orchestration test runner. |
 | `docs/` | Generic template runbooks and examples. |
 
 ## Fork-Owned Reserved Surfaces
@@ -92,24 +93,7 @@ Use repository-local commands when a target repository defines them. Common
 root-level checks:
 
 ```bash
-bash tests/orchestration/test-init-feature.sh
-bash tests/orchestration/test-render-manifest.sh
-bash tests/orchestration/test-collect-github-state.sh
-bash tests/orchestration/test-advance-stage.sh
-bash tests/orchestration/test-run-speckit-stage.sh
-bash tests/orchestration/test-evaluate-mergeability.sh
-bash tests/orchestration/test-discover-workspace.sh
-bash tests/orchestration/test-validate-workspace-proposal.sh
-bash tests/orchestration/test-render-workspace-files.sh
-bash tests/orchestration/test-compare-workspace-inventory.sh
-bash tests/orchestration/test-apply-workspace-proposal.sh
-bash tests/orchestration/test-workspace-bootstrap-guidance.sh
-```
-
-Template conformance:
-
-```bash
-bash tests/orchestration/test-template-agnostic.sh
+bash scripts/orchestration/run-ci-tests.sh
 ```
 
 ## Human Approval Boundaries

@@ -40,3 +40,12 @@ if rg -n '(TOKEN|PASSWORD|SECRET|PRIVATE_KEY)' \
   echo "CI adapters must not require credentials" >&2
   exit 1
 fi
+
+assert_contains "$repo_root/AGENTS.md" ".gitlab-ci.yml"
+assert_contains "$repo_root/AGENTS.md" "bitbucket-pipelines.yml"
+assert_contains "$repo_root/AI-INDEX.md" ".gitlab-ci.yml"
+assert_contains "$repo_root/AI-INDEX.md" "bitbucket-pipelines.yml"
+assert_contains "$repo_root/README.md" "GitHub, GitLab, and Bitbucket"
+assert_contains "$repo_root/README.md" "run-ci-tests.sh"
+assert_contains "$repo_root/docs/runbooks/template-fork-contract.md" ".gitlab-ci.yml"
+assert_contains "$repo_root/docs/runbooks/template-fork-contract.md" "bitbucket-pipelines.yml"
