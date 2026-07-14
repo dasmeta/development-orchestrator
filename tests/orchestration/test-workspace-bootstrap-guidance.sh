@@ -75,5 +75,9 @@ for test_command in \
   "test-compare-workspace-inventory.sh" \
   "test-apply-workspace-proposal.sh" \
   "test-workspace-bootstrap-guidance.sh"; do
-  assert_contains "$repo_root/.github/workflows/control-repo-ci.yml" "$test_command"
+  assert_file_exists "$repo_root/tests/orchestration/$test_command"
 done
+
+assert_contains \
+  "$repo_root/scripts/orchestration/run-ci-tests.sh" \
+  'tests/orchestration/test-*.sh'

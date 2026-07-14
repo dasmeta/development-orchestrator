@@ -1,0 +1,16 @@
+stages:
+  - test
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+orchestration-tests:
+  stage: test
+  image: ubuntu:24.04
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git jq ripgrep ca-certificates
+  script:
+    - bash scripts/orchestration/run-ci-tests.sh
