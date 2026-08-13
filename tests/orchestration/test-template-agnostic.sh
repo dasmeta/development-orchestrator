@@ -5,6 +5,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 forbidden_parts=(
+  "Gal""ust"
   "01-product""-requirements"
   "03-shared""-contracts"
   "02-e2e""-tests"
@@ -27,7 +28,7 @@ if rg -n '/(Users|home)/|[A-Z]:\\\\' \
   exit 1
 fi
 
-if rg -n 'frontend-tests|product-e2e|visual-review-import|architecture-review-import' \
+if rg -n 'frontend-tests|product-e2e|visual-review-import|architecture-review-import|orchestrator-core-tests|orchestrator-mcp-tests|orchestrator-scheduled-trigger-test' \
   "$repo_root/scripts" "$repo_root/schemas" "$repo_root/templates" \
   "$repo_root/config/workspace.example.json"; then
   echo "generic engine contains adopter-only provider or evidence identifiers" >&2
