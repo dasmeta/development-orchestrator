@@ -26,6 +26,13 @@ architecture sources, evidence types, and enforcement mode.
 8. Archive a ready `release-ready` record with
    `archive-feature-evidence.sh`.
 
+Filesystem archives are idempotent when their evidence content is unchanged.
+For `release_archive.kind=command`, `destination` names a config-relative
+executable that receives the canonical record on stdin and the
+`QUALITY_ARCHIVE_FEATURE_ID` and `QUALITY_ARCHIVE_DECISION` environment values.
+The command owns durable storage and idempotency and must return nonzero when
+storage is unavailable.
+
 ## Policy modes
 
 - `off`: legacy commands apply; the quality cycle requires `--force-evaluate`.

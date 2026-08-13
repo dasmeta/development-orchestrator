@@ -35,6 +35,10 @@ assert_contains "$feature_dir/state/readiness.md" "Architecture conformance"
 assert_contains "$feature_dir/state/readiness.md" "ARCH-ADVISORY"
 assert_contains "$feature_dir/state/pr-summary.md" "commit:abc"
 assert_contains "$feature_dir/state/pr-summary.md" "WV-1"
+cmp "$repo_root/tests/fixtures/quality/expected-readiness.md" \
+  "$feature_dir/state/readiness.md"
+cmp "$repo_root/tests/fixtures/quality/expected-pr-summary.md" \
+  "$feature_dir/state/pr-summary.md"
 cp "$feature_dir/state/readiness.md" "$tmp_dir/readiness-first.md"; cp "$feature_dir/state/pr-summary.md" "$tmp_dir/summary-first.md"
 bash "$repo_root/scripts/orchestration/render-quality-reports.sh" --feature-dir "$feature_dir"
 cmp "$tmp_dir/readiness-first.md" "$feature_dir/state/readiness.md"; cmp "$tmp_dir/summary-first.md" "$feature_dir/state/pr-summary.md"

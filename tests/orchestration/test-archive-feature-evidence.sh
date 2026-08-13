@@ -26,3 +26,29 @@ bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" --feature-di
 cmp "$tmp_dir/first-archive.json" "$record"
 jq '.status="blocked"' "$feature_dir/state/readiness.json" > "$tmp_dir/blocked.json"; mv "$tmp_dir/blocked.json" "$feature_dir/state/readiness.json"
 assert_command_fails bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json"
+
+jq '.release_archive={"kind":"command","destination":"archive-command"}' \
+  "$tmp_dir/config/policy.json" > "$tmp_dir/config/command-policy.json"
+jq '.quality.policy="command-policy.json"' "$tmp_dir/config/workspace.json" \
+  > "$tmp_dir/config/command-workspace.json"
+cat > "$tmp_dir/config/archive-command" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+test -n "$QUALITY_ARCHIVE_FEATURE_ID"
+test -n "$QUALITY_ARCHIVE_DECISION"
+cp /dev/stdin "$QUALITY_ARCHIVE_OUTPUT"
+SH
+chmod +x "$tmp_dir/config/archive-command"
+jq '.status="ready"' "$feature_dir/state/readiness.json" > "$tmp_dir/ready.json"; mv "$tmp_dir/ready.json" "$feature_dir/state/readiness.json"
+QUALITY_ARCHIVE_OUTPUT="$tmp_dir/command-archive.json" \
+  bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" \
+    --feature-dir "$feature_dir" \
+    --config "$tmp_dir/config/command-workspace.json" \
+    --now 2026-08-13T05:00:00Z
+assert_file_exists "$tmp_dir/command-archive.json"
+jq -e '.feature_id=="FEAT-REL" and .decision=="release-ready"' \
+  "$tmp_dir/command-archive.json" >/dev/null
+chmod -x "$tmp_dir/config/archive-command"
+assert_command_fails env QUALITY_ARCHIVE_OUTPUT="$tmp_dir/unavailable.json" \
+  bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" \
+    --feature-dir "$feature_dir" --config "$tmp_dir/config/command-workspace.json"

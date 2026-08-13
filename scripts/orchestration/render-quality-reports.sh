@@ -10,6 +10,6 @@ if ! jq -e --slurpfile plan "$plan" '.subject_fingerprint == $plan[0].subject_fi
   echo "refusing to render reports from stale readiness" >&2; exit 1
 fi
 readiness_tmp="$(mktemp "$feature_dir/state/.readiness-md.XXXXXX")"; summary_tmp="$(mktemp "$feature_dir/state/.pr-summary.XXXXXX")"
-jq -nr --slurpfile readiness "$readiness" --slurpfile scope "$scope" -f "$script_dir/jq/render-readiness.jq" > "$readiness_tmp"
-jq -nr --slurpfile readiness "$readiness" --slurpfile scope "$scope" --slurpfile plan "$plan" -f "$script_dir/jq/render-pr-summary.jq" > "$summary_tmp"
+jq -njr --slurpfile readiness "$readiness" --slurpfile scope "$scope" -f "$script_dir/jq/render-readiness.jq" > "$readiness_tmp"
+jq -njr --slurpfile readiness "$readiness" --slurpfile scope "$scope" --slurpfile plan "$plan" -f "$script_dir/jq/render-pr-summary.jq" > "$summary_tmp"
 mv "$readiness_tmp" "$feature_dir/state/readiness.md"; mv "$summary_tmp" "$feature_dir/state/pr-summary.md"
