@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/feature-scope.schema.json",
+  "title": "Feature repository scope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feature_id", "repositories", "explicit_impacts", "derived_impacts", "policy_version"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "subject", "changed_paths"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "role": {"$ref": "#/$defs/id"},
+          "subject": {"type": "string", "pattern": "^(commit|worktree):[^\\r\\n]+$"},
+          "base": {"type": ["string", "null"]},
+          "head": {"type": ["string", "null"]},
+          "changed_paths": {"type": "array", "items": {"type": "string"}},
+          "dependencies": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+          "captured_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "explicit_impacts": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+    "derived_impacts": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+    "policy_version": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}
+  }
+}

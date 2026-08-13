@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/feature-claims.schema.json",
+  "title": "Feature acceptance claims",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feature_id", "claims"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "source", "content_digest"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "source": {"$ref": "#/$defs/source"},
+          "content_digest": {"type": "string", "minLength": 1},
+          "priority": {"type": ["string", "null"]},
+          "release_critical": {"type": "boolean"},
+          "surfaces": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+          "evidence_expectations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "approval_evidence_id": {"type": ["string", "null"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository_id", "revision"],
+      "properties": {
+        "repository_id": {"$ref": "#/$defs/id"},
+        "revision": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1}
+      },
+      "anyOf": [{"required": ["path"]}, {"required": ["reference"]}]
+    }
+  }
+}
