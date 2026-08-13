@@ -13,8 +13,17 @@ evidence_files=""; waiver_files=""; for f in "$feature_dir"/evidence/*.json; do 
 printf '[]\n' > "$scratch/evidence.json"; printf '[]\n' > "$scratch/waivers.json"
 if [[ -n "$evidence_files" ]]; then jq -s . $evidence_files > "$scratch/evidence.json"; fi
 if [[ -n "$waiver_files" ]]; then jq -s . $waiver_files > "$scratch/waivers.json"; fi
-feature_id="$(feature_id_from_dir "$feature_dir")"; final="$destination/$feature_id.json"; [[ ! -e "$final" ]] || { echo "release archive record already exists: $final" >&2; exit 1; }
+feature_id="$(feature_id_from_dir "$feature_dir")"; final="$destination/$feature_id.json"
 tmp="$(mktemp "$destination/.release.XXXXXX")"
 jq -n --slurpfile r "$readiness" --slurpfile s "$scope" --slurpfile e "$scratch/evidence.json" --slurpfile w "$scratch/waivers.json" --arg now "$now" '
  {schema_version:"1",feature_id:$r[0].feature_id,decision:$r[0].decision,status:$r[0].status,policy_version:$s[0].policy_version,subjects:($s[0].repositories|map({key:.id,value:.subject})|from_entries),evidence:$e[0],waivers:$w[0],known_gaps:$r[0].known_gaps,archived_at:$now}' > "$tmp"
+if [[ -e "$final" ]]; then
+  if jq -e --slurpfile existing "$final" 'del(.archived_at) == ($existing[0] | del(.archived_at))' "$tmp" >/dev/null; then
+    rm -f "$tmp"
+    exit 0
+  fi
+  rm -f "$tmp"
+  echo "release archive record exists with different evidence: $final" >&2
+  exit 1
+fi
 mv "$tmp" "$final"

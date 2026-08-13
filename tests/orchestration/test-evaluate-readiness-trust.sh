@@ -57,7 +57,14 @@ rm "$feature_dir/evidence/EV-self.json"; write_arch_evidence EV-verifier verific
 assert_equals ready "$(jq -r .status "$feature_dir/state/readiness.json")"
 jq -e '.advisory_architecture_constraint_ids == ["ARCH-ADVISORY"]' "$feature_dir/state/readiness.json" >/dev/null
 
+write_arch_evidence EV-implementation-run implementation '["ARCH-1"]'
 rm "$feature_dir/evidence/EV-verifier.json"
+jq -n --arg digest "$digest" '{schema_version:"1",evidence_id:"EV-same-run",feature_id:"FEAT-TRUST",evidence_type:"architecture-conformance",provider_id:"verifier",producer:{id:"verifier",role:"verification",run_id:"EV-implementation-run"},coverage:{claim_ids:[],architecture_constraint_ids:["ARCH-1"]},subject:{repositories:{app:"commit:abc"}},policy_version:"1",provider_config_digest:$digest,result:"passed",outcome:"completed",environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:01:00Z",expires_at:null,artifacts:[],findings:[],known_gaps:[]}' > "$feature_dir/evidence/EV-same-run.json"
+evaluate
+assert_equals incomplete "$(jq -r .status "$feature_dir/state/readiness.json")"
+jq -e '.findings | any(.id == "EVIDENCE_TRUST_INVALID:architecture")' "$feature_dir/state/readiness.json" >/dev/null
+
+rm "$feature_dir/evidence/EV-implementation-run.json" "$feature_dir/evidence/EV-same-run.json"
 cat > "$feature_dir/waivers/WV-invalid.json" <<'JSON'
 {"schema_version":"1","waiver_id":"WV-invalid","feature_id":"FEAT-TRUST","gate_id":"architecture","finding_id":"EVIDENCE_MISSING:architecture","scope":{"repositories":{"app":"commit:abc"},"claim_ids":[],"architecture_constraint_ids":["ARCH-1"],"environment_id":"local"},"approver":{"id":"agent"},"authority_evidence_id":"EV-missing","reason":"self approved","acknowledged_risk":"architecture proof missing","issued_at":"2026-08-13T00:00:00Z","expires_at":"2026-08-14T00:00:00Z","allow_revision_change":false}
 JSON

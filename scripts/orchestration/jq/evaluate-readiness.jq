@@ -24,6 +24,7 @@ def finding($id; $class; $owner; $gate_id; $message):
 ($a.constraints | map(select(.enforcement == "blocking") | .id) | unique | sort) as $blocking_architecture_ids |
 ($a.constraints | map(select(.enforcement == "advisory") | .id) | unique | sort) as $advisory_architecture_ids |
 ($p.decisions[$decision].require_gates // []) as $decision_gate_ids |
+([$all_evidence[] | select(.producer.role == "implementation") | .producer.run_id] | unique) as $implementation_run_ids |
 [
   $gp.gates[]
   | select(.id as $id | $decision_gate_ids | index($id))
@@ -58,7 +59,9 @@ def finding($id; $class; $owner; $gate_id; $message):
           )
         | select(
             if (($gate.coverage.architecture != "none") or (.evidence_type | test("verification|conformance")))
-            then .producer.role != "implementation"
+            then . as $candidate_evidence |
+              $candidate_evidence.producer.role != "implementation" and
+              (($implementation_run_ids | index($candidate_evidence.producer.run_id)) == null)
             else true end
           )
       ] | first) as $selected |
@@ -121,18 +124,23 @@ def finding($id; $class; $owner; $gate_id; $message):
     end
 ] as $gate_results |
 ((($gp.impacts.all | index("architecture-sensitive")) != null) and (($a.sources | length) == 0)) as $architecture_source_unresolved |
+([$s.repositories[]
+  | select(($decision == "merge-ready" or $decision == "release-ready") and (.subject | startswith("commit:") | not))
+  | finding("SUBJECT_NOT_COMMITTED:"+.id;"evidence";.role;null;("Decision "+$decision+" requires a committed subject for "+.id))
+]) as $uncommitted_findings |
 ([$gate_results[].findings[]] +
  [$malformed_files[] | finding("EVIDENCE_MALFORMED:"+.;"evidence";"verification";null;("Malformed evidence file: "+.))] +
  (if $architecture_source_unresolved then
     [finding("ARCHITECTURE_SOURCE_UNRESOLVED";"policy";"architecture";null;"Architecture-sensitive scope has no governed architecture source")]
   else [] end) +
+ $uncommitted_findings +
  ($gp.findings // [])) as $findings |
 ($gate_results | map(.status | status_rank) | max // 0) as $rank |
 {
   schema_version:"1",
   feature_id:$s.feature_id,
   decision:$decision,
-  status:(if $rank == 3 then "failed" elif $rank == 2 then "blocked" elif ($rank == 1 or $architecture_source_unresolved) then "incomplete" else "ready" end),
+  status:(if $rank == 3 then "failed" elif $rank == 2 then "blocked" elif ($rank == 1 or $architecture_source_unresolved or ($uncommitted_findings|length)>0) then "incomplete" else "ready" end),
   subject_fingerprint:$gp.subject_fingerprint,
   evaluated_at:$now,
   gates:($gate_results | sort_by(.id)),

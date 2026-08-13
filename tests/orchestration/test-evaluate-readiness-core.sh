@@ -98,3 +98,14 @@ jq -e '.findings | any(.id == "EVIDENCE_SUBJECT_MISMATCH:tests")' "$feature_dir/
 printf '{bad json' > "$feature_dir/evidence/malformed.json"
 evaluate
 jq -e '.findings | any(.id == "EVIDENCE_MALFORMED:malformed.json")' "$feature_dir/state/readiness.json" >/dev/null
+
+printf '{"schema_version":"1"}\n' > "$feature_dir/evidence/malformed-object.json"
+evaluate
+jq -e '.findings | any(.id == "EVIDENCE_MALFORMED:malformed-object.json")' "$feature_dir/state/readiness.json" >/dev/null
+
+rm "$feature_dir/evidence/malformed.json" "$feature_dir/evidence/malformed-object.json" "$feature_dir/evidence/EV-tests-wrong.json"
+write_evidence EV-tests-worktree focused-tests tests passed '["AC-1"]' worktree:dirty
+jq '.repositories[0].subject="worktree:dirty"' "$feature_dir/scope.json" > "$tmp_dir/worktree-scope.json"; mv "$tmp_dir/worktree-scope.json" "$feature_dir/scope.json"
+evaluate
+assert_equals incomplete "$(jq -r .status "$feature_dir/state/readiness.json")"
+jq -e '.findings | any(.id == "SUBJECT_NOT_COMMITTED:app")' "$feature_dir/state/readiness.json" >/dev/null

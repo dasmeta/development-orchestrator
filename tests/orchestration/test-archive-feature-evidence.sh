@@ -21,5 +21,8 @@ JSON
 bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --now 2026-08-13T03:00:00Z
 record="$tmp_dir/archive/FEAT-REL.json"; assert_file_exists "$record"
 jq -e '.status=="ready" and .decision=="release-ready" and .subjects.app=="commit:abc" and (.evidence|length)==1 and .archived_at=="2026-08-13T03:00:00Z"' "$record" >/dev/null
+cp "$record" "$tmp_dir/first-archive.json"
+bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --now 2026-08-13T04:00:00Z
+cmp "$tmp_dir/first-archive.json" "$record"
 jq '.status="blocked"' "$feature_dir/state/readiness.json" > "$tmp_dir/blocked.json"; mv "$tmp_dir/blocked.json" "$feature_dir/state/readiness.json"
 assert_command_fails bash "$repo_root/scripts/orchestration/archive-feature-evidence.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json"

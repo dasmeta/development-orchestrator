@@ -6,6 +6,7 @@ control_repo_root="$(cd "$script_dir/../.." && pwd)"
 source "$script_dir/lib/common.sh"
 source "$script_dir/lib/feature_paths.sh"
 source "$script_dir/lib/workspace_config.sh"
+source "$script_dir/lib/quality_records.sh"
 require_command git
 require_command jq
 
@@ -34,23 +35,25 @@ done
 
 scratch_dir="$(mktemp -d)"; trap 'rm -rf "$scratch_dir"' EXIT
 printf '[]\n' > "$scratch_dir/evidence.json"; printf '[]\n' > "$scratch_dir/waivers.json"; printf '[]\n' > "$scratch_dir/malformed.json"
-valid_files=""; malformed_records=""
+valid_files=(); malformed_records=()
 for record in "$feature_dir"/evidence/*.json; do
   [[ -f "$record" ]] || continue
-  if jq -e 'type == "object"' "$record" >/dev/null 2>&1; then valid_files="$valid_files $record"; else malformed_records="$malformed_records $(basename "$record")"; fi
+  if validate_evidence_record "$record" "$(feature_id_from_dir "$feature_dir")" >/dev/null 2>&1; then
+    valid_files+=("$record")
+  else
+    malformed_records+=("$(basename "$record")")
+  fi
 done
-if [[ -n "$valid_files" ]]; then
-  # shellcheck disable=SC2086
-  jq -s . $valid_files > "$scratch_dir/evidence.json"
+if [[ ${#valid_files[@]} -gt 0 ]]; then
+  jq -s . "${valid_files[@]}" > "$scratch_dir/evidence.json"
 fi
-if [[ -n "$malformed_records" ]]; then
-  printf '%s\n' $malformed_records | jq -R . | jq -s . > "$scratch_dir/malformed.json"
+if [[ ${#malformed_records[@]} -gt 0 ]]; then
+  printf '%s\n' "${malformed_records[@]}" | jq -R . | jq -s . > "$scratch_dir/malformed.json"
 fi
-waiver_files=""
-for record in "$feature_dir"/waivers/*.json; do [[ -f "$record" ]] && waiver_files="$waiver_files $record"; done
-if [[ -n "$waiver_files" ]]; then
-  # shellcheck disable=SC2086
-  jq -s . $waiver_files > "$scratch_dir/waivers.json"
+waiver_files=()
+for record in "$feature_dir"/waivers/*.json; do [[ -f "$record" ]] && waiver_files+=("$record"); done
+if [[ ${#waiver_files[@]} -gt 0 ]]; then
+  jq -s . "${waiver_files[@]}" > "$scratch_dir/waivers.json"
 fi
 
 printf '{}\n' > "$scratch_dir/provider-digests.json"

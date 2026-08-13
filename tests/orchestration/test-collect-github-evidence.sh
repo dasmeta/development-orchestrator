@@ -28,5 +28,5 @@ done
 bash "$repo_root/scripts/orchestration/collect-github-evidence.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --checks-provider github-checks --authority-provider github-authority --run-id gh-run --now 2026-08-13T01:00:00Z
 assert_file_exists "$feature_dir/evidence/EV-github-checks-app-gh-run.json"; assert_file_exists "$feature_dir/evidence/EV-github-checks-validation-gh-run.json"
 assert_file_exists "$feature_dir/evidence/EV-github-authority-app-gh-run.json"; assert_file_exists "$feature_dir/evidence/EV-github-authority-validation-gh-run.json"
-jq -e '.subject.repositories=={"app":"commit:aaa"} and .result=="passed" and .artifacts[0].reference=="https://ci.example/app"' "$feature_dir/evidence/EV-github-checks-app-gh-run.json" >/dev/null
-jq -e '.producer.id=="reviewer-app" and .producer.role=="authority" and .result=="passed"' "$feature_dir/evidence/EV-github-authority-app-gh-run.json" >/dev/null
+jq -e '.subject.repositories=={"app":"commit:aaa","validation":"commit:bbb"} and .result=="passed" and .artifacts[0].reference=="https://ci.example/app"' "$feature_dir/evidence/EV-github-checks-app-gh-run.json" >/dev/null
+jq -e '.producer.id=="reviewer-app" and .producer.role=="authority" and .result=="passed" and .coverage.claim_ids==[] and .subject.repositories=={"app":"commit:aaa","validation":"commit:bbb"}' "$feature_dir/evidence/EV-github-authority-app-gh-run.json" >/dev/null
