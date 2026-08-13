@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+workspace_config_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$workspace_config_lib_dir/quality_config.sh"
+unset workspace_config_lib_dir
+
 default_workspace_config_path() {
   local script_dir="$1"
   local repo_root
@@ -61,10 +65,8 @@ workspace_stage_skill() {
 workspace_repository_path() {
   local config_path="$1"
   local repo_id="$2"
-  local config_dir
   local configured_path
 
-  config_dir="$(cd "$(dirname "$config_path")" && pwd)"
   configured_path="$(jq -r --arg repo_id "$repo_id" \
     '.repositories[$repo_id].path // empty' "$config_path")"
 
@@ -72,11 +74,7 @@ workspace_repository_path() {
     return 1
   fi
 
-  if [[ "$configured_path" = /* ]]; then
-    printf '%s\n' "$configured_path"
-  else
-    printf '%s\n' "$config_dir/$configured_path"
-  fi
+  resolve_config_relative_path "$config_path" "$configured_path"
 }
 
 workspace_next_stage() {

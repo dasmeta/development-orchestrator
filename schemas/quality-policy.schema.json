@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/quality-policy.schema.json",
+  "title": "Development orchestration quality policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "protected_path_regex",
+    "impact_rules",
+    "gates",
+    "providers",
+    "decisions",
+    "release_archive",
+    "budgets"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "policy_version": {"const": "1"},
+    "protected_path_regex": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "impact_rules": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/impact_rule"}
+    },
+    "gates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/gate"}
+    },
+    "providers": {
+      "type": "object",
+      "propertyNames": {"type": "string", "minLength": 1},
+      "additionalProperties": {"$ref": "#/$defs/provider"}
+    },
+    "decisions": {
+      "type": "object",
+      "propertyNames": {"type": "string", "minLength": 1},
+      "additionalProperties": {"$ref": "#/$defs/decision"}
+    },
+    "release_archive": {"$ref": "#/$defs/release_archive"},
+    "budgets": {"$ref": "#/$defs/budgets"}
+  },
+  "$defs": {
+    "nonempty_string": {"type": "string", "minLength": 1},
+    "string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "impact_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "when", "add_impacts"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonempty_string"},
+        "when": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repository_ids_any",
+            "repository_roles_any",
+            "path_regex_any"
+          ],
+          "properties": {
+            "repository_ids_any": {"$ref": "#/$defs/string_array"},
+            "repository_roles_any": {"$ref": "#/$defs/string_array"},
+            "path_regex_any": {"$ref": "#/$defs/string_array"}
+          }
+        },
+        "add_impacts": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decisions",
+        "when",
+        "evidence_types",
+        "providers",
+        "coverage",
+        "required_result"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonempty_string"},
+        "decisions": {"$ref": "#/$defs/string_array"},
+        "when": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["impacts_any"],
+          "properties": {
+            "impacts_any": {"$ref": "#/$defs/string_array"}
+          }
+        },
+        "evidence_types": {"$ref": "#/$defs/string_array"},
+        "providers": {"$ref": "#/$defs/string_array"},
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claims", "architecture"],
+          "properties": {
+            "claims": {"enum": ["none", "all"]},
+            "architecture": {"enum": ["none", "all", "all_blocking"]}
+          }
+        },
+        "required_result": {"$ref": "#/$defs/nonempty_string"}
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "trust", "producer_role"],
+      "properties": {
+        "kind": {
+          "enum": ["command", "external-import", "source-control", "verifier"]
+        },
+        "trust": {"$ref": "#/$defs/nonempty_string"},
+        "producer_role": {"$ref": "#/$defs/nonempty_string"},
+        "repository_role": {"$ref": "#/$defs/nonempty_string"},
+        "repository_ids": {"$ref": "#/$defs/string_array"},
+        "working_directory": {"type": "string"},
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[^\\r\\n]*$"
+          }
+        },
+        "output_mode": {"$ref": "#/$defs/nonempty_string"}
+      },
+      "anyOf": [
+        {"required": ["repository_role"]},
+        {
+          "required": ["repository_ids"],
+          "properties": {
+            "repository_ids": {"minItems": 1}
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"enum": ["command", "verifier"]}}},
+          "then": {"required": ["working_directory", "command", "output_mode"]}
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require_gates"],
+      "properties": {
+        "require_gates": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "release_archive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "destination"],
+      "properties": {
+        "kind": {"enum": ["filesystem", "command"]},
+        "destination": {"$ref": "#/$defs/nonempty_string"}
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_retries", "repair_attempts"],
+      "properties": {
+        "provider_retries": {"type": "integer", "minimum": 0},
+        "repair_attempts": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}
