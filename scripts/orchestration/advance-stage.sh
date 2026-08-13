@@ -48,12 +48,21 @@ current_stage="$(jq -r '.stage' "$manifest_path")"
 next_stage="$(workspace_next_stage "$config_path" "$current_stage")"
 advance_path="$(workspace_advance_when_path "$config_path")"
 advance_equals="$(workspace_advance_when_equals_json "$config_path")"
+quality_mode="$(workspace_quality_mode "$config_path")"
+advance_allowed=false
+if [[ "$quality_mode" == "enforce" && -f "$feature_dir/state/readiness.json" && -f "$feature_dir/state/gate-plan.json" ]]; then
+  decision="$(workspace_stage_advance_decision "$config_path" "$current_stage")"
+  if jq -e --arg decision "$decision" --slurpfile plan "$feature_dir/state/gate-plan.json" \
+    '.decision==$decision and .status=="ready" and .subject_fingerprint==$plan[0].subject_fingerprint' "$feature_dir/state/readiness.json" >/dev/null; then
+    advance_allowed=true
+  fi
+elif [[ "$quality_mode" != "enforce" ]] && jq -e \
+  --arg path "$advance_path" --argjson expected "$advance_equals" \
+  'getpath(($path | ltrimstr(".") | split("."))) == $expected' "$github_state_path" >/dev/null; then
+  advance_allowed=true
+fi
 
-if [[ -n "$next_stage" ]] && jq -e \
-  --arg path "$advance_path" \
-  --argjson expected "$advance_equals" \
-  'getpath(($path | ltrimstr(".") | split("."))) == $expected' \
-  "$github_state_path" >/dev/null; then
+if [[ -n "$next_stage" && "$advance_allowed" == true ]]; then
   tmp_file="$(mktemp)"
   jq --arg stage "$next_stage" \
     '.stage = $stage | .mergeability.ready = false | .mergeability.reason = "configured_gates_incomplete"' \

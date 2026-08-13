@@ -8,6 +8,10 @@
     "path": ".pull_request.approved",
     "equals": true
   },
+  "quality": {
+    "mode": "off",
+    "policy": "../overlays/quality/policy.json"
+  },
   "repositories": {
     "intent": {
       "path": "../intent",

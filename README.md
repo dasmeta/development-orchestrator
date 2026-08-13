@@ -39,7 +39,8 @@ It is not a monorepo builder and it does not become the source of truth for
 product behavior or implementation. Requirements, contracts, runtime code, and
 executable validation stay in their owning repositories. This repository owns
 the wiring between them: repository discovery, routing, feature state, stage
-execution, handoffs, and mergeability evidence.
+execution, handoffs, revision-bound evidence, named readiness decisions, and
+bounded evidence-driven repair.
 
 ## When To Use It
 
@@ -355,6 +356,10 @@ bash scripts/orchestration/collect-github-state.sh \
   --fixtures tests/fixtures/github
 bash scripts/orchestration/advance-stage.sh features/FEAT-0001
 bash scripts/orchestration/evaluate-mergeability.sh features/FEAT-0001
+bash scripts/orchestration/run-quality-cycle.sh \
+  --feature-dir features/FEAT-0001 \
+  --decision merge-ready \
+  --run-id local-1
 ```
 
 For a live GitHub pull request:
@@ -368,6 +373,8 @@ bash scripts/orchestration/collect-github-state.sh \
 
 See the [development orchestration runbook](docs/runbooks/development-orchestration.md)
 for stage execution, state collection, and configuration resolution.
+See [feature evidence quality gates](docs/runbooks/feature-evidence-quality-gates.md)
+for policy, provider, trust, waiver, migration, and repair-loop operation.
 
 ## Forge Support
 
@@ -455,6 +462,7 @@ eligible runner.
 | [AI-INDEX.md](AI-INDEX.md) | Agent-oriented navigation across root surfaces and generated outputs |
 | [Workspace bootstrap runbook](docs/runbooks/workspace-bootstrap.md) | Initial bootstrap, onboarding, refresh, approval, and recovery |
 | [Development orchestration runbook](docs/runbooks/development-orchestration.md) | Feature initialization, stage execution, state, and mergeability |
+| [Feature evidence quality gates](docs/runbooks/feature-evidence-quality-gates.md) | Revision-bound evidence, readiness decisions, waivers, and bounded repair |
 | [Template/fork contract](docs/runbooks/template-fork-contract.md) | Upstream ownership, fork ownership, and safe synchronization |
 | [Requirements-to-UI handoff](docs/runbooks/requirements-to-ui-handoff.md) | Translating approved product intent into bounded UI implementation guidance |
 | [TODO.md](TODO.md) | Known gaps and planned adapters |

@@ -43,9 +43,18 @@ if [[ -z "$feature_id" || -z "$title" ]]; then
 fi
 
 feature_dir="$repo_root/features/$feature_id"
-mkdir -p "$feature_dir/state"
+mkdir -p \
+  "$feature_dir/evidence" \
+  "$feature_dir/waivers" \
+  "$feature_dir/state/runs" \
+  "$feature_dir/state/provider-runs"
 
 render_template "$repo_root/templates/features/intake.md" "$feature_dir/intake.md"
 render_template "$repo_root/templates/features/status.md" "$feature_dir/state/status.md"
+render_template "$repo_root/templates/features/scope.json" "$feature_dir/scope.json"
+render_template "$repo_root/templates/features/claims.json" "$feature_dir/claims.json"
+render_template \
+  "$repo_root/templates/features/architecture.json" \
+  "$feature_dir/architecture.json"
 
 echo "Initialized $feature_id: $title"

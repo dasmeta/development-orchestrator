@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "waiver_id": "WV-1",
+  "feature_id": "FEAT-0001",
+  "gate_id": "focused-tests",
+  "finding_id": "EVIDENCE_MISSING:focused-tests",
+  "scope": {
+    "repositories": {"implementation": "commit:abc"},
+    "claim_ids": ["AC-1"],
+    "architecture_constraint_ids": [],
+    "environment_id": "local"
+  },
+  "approver": {"id": "human-reviewer"},
+  "authority_evidence_id": "EV-authority-1",
+  "reason": "Temporary provider outage",
+  "acknowledged_risk": "Focused test evidence is unavailable",
+  "issued_at": "2026-08-13T00:00:00Z",
+  "expires_at": "2026-08-14T00:00:00Z",
+  "allow_revision_change": false
+}

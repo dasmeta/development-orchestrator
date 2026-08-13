@@ -5,8 +5,11 @@
 - [ ] Keep root orchestration scripts driven by `config/workspace.json`.
 - [ ] Keep product-specific child repository names out of upstream template docs.
 - [ ] Add product fork examples only under explicit example/profile paths.
-- [ ] Expand merge-gate configuration when real product forks need additional
-  evidence types.
+- [x] Support product-configured open evidence types and named decisions.
+- [x] Add revision-bound evidence, immutable waivers, deterministic readiness,
+  and bounded repair orchestration.
+- [ ] Promote adopter policies from observe to enforce only after documented
+  dogfood and operator review.
 - [ ] Keep handoff templates generic and role-based.
 
 ## Product Fork Checklist

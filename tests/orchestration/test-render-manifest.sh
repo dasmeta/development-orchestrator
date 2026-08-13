@@ -11,6 +11,9 @@ trap 'rm -rf "$tmp_dir"' EXIT
 mkdir -p "$tmp_dir/templates/features"
 cp "$repo_root/templates/features/intake.md" "$tmp_dir/templates/features/intake.md"
 cp "$repo_root/templates/features/status.md" "$tmp_dir/templates/features/status.md"
+cp "$repo_root/templates/features/scope.json" "$tmp_dir/templates/features/scope.json"
+cp "$repo_root/templates/features/claims.json" "$tmp_dir/templates/features/claims.json"
+cp "$repo_root/templates/features/architecture.json" "$tmp_dir/templates/features/architecture.json"
 mkdir -p "$tmp_dir/config"
 cat > "$tmp_dir/config/workspace.json" <<'JSON'
 {
@@ -71,7 +74,8 @@ jq -e '.repositories == ["intent","implementation","validation"]' \
 jq -e '.mergeability.ready == false' "$feature_dir/state/manifest.json" >/dev/null
 
 bash "$repo_root/scripts/orchestration/render-manifest.sh" \
-  "$feature_dir"
+  "$feature_dir" \
+  --config "$repo_root/config/workspace.example.json"
 
 jq -e '.repositories == ["intent","contracts","implementation","validation"]' \
   "$feature_dir/state/manifest.json" >/dev/null

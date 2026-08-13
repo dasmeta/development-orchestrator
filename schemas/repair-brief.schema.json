@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/repair-brief.schema.json",
+  "title": "Bounded autonomous repair brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feature_id", "decision", "subject_fingerprint", "human_action_required", "repairs"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "feature_id": {"type": "string", "minLength": 1},
+    "decision": {"type": "string", "minLength": 1},
+    "subject_fingerprint": {"type": "string", "minLength": 1},
+    "human_action_required": {"type": "boolean"},
+    "repairs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding_id", "owner", "allowed_responsibility"],
+        "properties": {
+          "finding_id": {"type": "string", "minLength": 1},
+          "gate_id": {"type": ["string", "null"]},
+          "owner": {"type": "string", "minLength": 1},
+          "affected_claim_ids": {"type": "array", "items": {"type": "string"}},
+          "affected_architecture_constraint_ids": {"type": "array", "items": {"type": "string"}},
+          "allowed_responsibility": {"type": "string", "minLength": 1},
+          "message": {"type": "string"}
+        }
+      }
+    }
+  }
+}

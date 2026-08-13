@@ -19,6 +19,7 @@ routing, and active configuration.
 Upstream may create and modify:
 
 - `AGENTS.md`
+- `CLAUDE.md`
 - `AI-INDEX.md`
 - `README.md`
 - `TODO.md`

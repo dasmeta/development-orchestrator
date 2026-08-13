@@ -37,7 +37,9 @@ cat <<'JSON'
   "reviewDecision": "APPROVED",
   "mergeStateStatus": "MERGED",
   "headRefName": "feat-0001-branch-previews",
+  "headRefOid": "1111111111111111111111111111111111111111",
   "url": "https://github.com/example/implementation/pull/12",
+  "latestReviews": [{"author":{"login":"reviewer-one"},"state":"APPROVED"}],
   "statusCheckRollup": [
     {
       "name": "implementation-build",
@@ -75,3 +77,14 @@ jq -e '.checks.implementation == "green"' "$state_path" >/dev/null
 jq -e '.checks.validation == "green"' "$state_path" >/dev/null
 jq -e '.preview.status == "ready"' "$state_path" >/dev/null
 jq -e '.preview.url == "https://preview.example.test/feat-0001"' "$state_path" >/dev/null
+
+PATH="$tmp_dir/bin:$PATH" \
+  bash "$repo_root/scripts/orchestration/collect-github-state.sh" \
+    --feature-dir "$tmp_dir/features/FEAT-0001" \
+    --repo-id "implementation" \
+    --repo "example/implementation" \
+    --pr-number "12" \
+    --config "$tmp_dir/config/workspace.json"
+repo_state="$tmp_dir/features/FEAT-0001/state/github/implementation.json"
+assert_file_exists "$repo_state"
+jq -e '.repository_id=="implementation" and .pull_request.head_oid=="1111111111111111111111111111111111111111" and .pull_request.reviewers==["reviewer-one"] and .checks.implementation.url=="https://ci.example/implementation"' "$repo_state" >/dev/null

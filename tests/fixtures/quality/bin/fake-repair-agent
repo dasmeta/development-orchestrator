@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Test adapter: records its prompt and performs no product-specific mutation.
+cat > "${FAKE_REPAIR_PROMPT:-/dev/null}"

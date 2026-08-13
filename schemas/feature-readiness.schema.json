@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/feature-readiness.schema.json",
+  "title": "Derived feature readiness decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feature_id", "decision", "status", "subject_fingerprint", "evaluated_at", "gates", "findings", "known_gaps", "waivers", "advisory_architecture_constraint_ids"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "decision": {"$ref": "#/$defs/id"},
+    "status": {"enum": ["ready", "incomplete", "failed", "blocked"]},
+    "subject_fingerprint": {"type": "string", "minLength": 1},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "gates": {"type": "array", "items": {"type": "object"}},
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "known_gaps": {"type": "array", "items": {"type": "object"}},
+    "waivers": {"type": "array", "items": {"type": "object"}},
+    "advisory_architecture_constraint_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}}
+  },
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}}
+}

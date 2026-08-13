@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "evidence_id": "EV-run-1",
+  "feature_id": "untrusted-feature",
+  "evidence_type": "focused-tests",
+  "provider_id": "untrusted-provider",
+  "producer": {"id": "untrusted", "role": "implementation", "run_id": "untrusted-run"},
+  "coverage": {"repository_ids": ["implementation"], "claim_ids": ["AC-1"], "architecture_constraint_ids": []},
+  "subject": {"repositories": {"implementation": "commit:abc"}},
+  "policy_version": "untrusted",
+  "provider_config_digest": "untrusted",
+  "result": "passed",
+  "outcome": "completed",
+  "environment": {"id": "local", "fixture": null},
+  "collected_at": "2026-08-13T00:00:00Z",
+  "expires_at": null,
+  "artifacts": [],
+  "findings": [],
+  "known_gaps": []
+}

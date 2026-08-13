@@ -95,6 +95,52 @@ Gates:
 - Do not claim end-to-end completion without relevant validation evidence,
   unless the operator explicitly accepts that gap.
 
+## Evidence Quality Lifecycle
+When the resolved `config/workspace.json` contains an `observe` or `enforce`
+quality configuration, the configured lifecycle is the mandatory
+evidence-quality path for material features, fixes, and cross-repository
+changes. Product policy decides which gates and provider tools apply; agents
+must not hard-code a product tool or silently substitute a weaker check when a
+configured provider is missing.
+
+Lifecycle rules:
+
+- Read the resolved workspace quality mode and policy before implementation.
+- Initialize or migrate the feature ledger when needed, import approved claim
+  and architecture references from their owning repositories, and capture the
+  exact candidate repository subjects. Do not manufacture missing upstream
+  truth in the control repository.
+- After a material implementation chunk and before its downstream handoff, run
+  `scripts/orchestration/run-quality-cycle.sh` for `stage-ready` using the
+  applicable feature ledger.
+- Before representing a pull request as ready to merge or finalizing its
+  summary, run the same cycle for `merge-ready` against committed candidate
+  subjects and current pull-request evidence.
+- Run `release-ready` only against the configured deployed or preview path and
+  the release-critical evidence selected by product policy.
+- Let the quality cycle perform only its configured bounded repairs. Do not
+  bypass protected sources, invent authority evidence, or convert a missing,
+  blocked, or failed provider into a pass.
+- Treat architecture claims and constraints as first-class quality inputs.
+  Their source, applicability, and required conformance evidence come from the
+  configured repositories and policy, not from implementation self-assertion.
+
+Mode handling:
+
+- In `observe` mode, continue only as allowed by the operator workflow, but
+  report the actual decision and every failure, blocker, gap, and waiver. An
+  observing run is not evidence that the feature is ready.
+- In `enforce` mode, a non-ready named decision blocks the corresponding
+  handoff, merge-readiness claim, or release-readiness claim.
+- In `off` mode, follow the legacy completion rules unless the operator asks
+  for a forced evaluation.
+
+Do not claim readiness, completion, successful validation, or architectural
+conformance when the applicable generated readiness report is incomplete,
+failed, or blocked. Pull-request summaries must be grounded in the generated
+readiness report and generated PR summary for the same committed subjects; do
+not replace them with a summary reconstructed from conversation memory.
+
 ## Handoff Rules
 When work enters a child repository:
 
@@ -123,8 +169,8 @@ central template.
 The full upstream/fork ownership contract is documented in
 `docs/runbooks/template-fork-contract.md`.
 
-Upstream-owned paths are generic template surfaces: `AGENTS.md`, `AI-INDEX.md`,
-`README.md`, `TODO.md`, `.github/`, `.gitlab-ci.yml`,
+Upstream-owned paths are generic template surfaces: `AGENTS.md`, `CLAUDE.md`,
+`AI-INDEX.md`, `README.md`, `TODO.md`, `.github/`, `.gitlab-ci.yml`,
 `bitbucket-pipelines.yml`, `.specify/`, `.agents/`, `scripts/`, `schemas/`,
 `templates/`, `tests/`, `docs/`, and
 `config/workspace.example.json`.

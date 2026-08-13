@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://development-orchestrator.invalid/schemas/feature-waiver.schema.json",
+  "title": "Feature quality waiver",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "waiver_id", "feature_id", "gate_id", "finding_id",
+    "scope", "approver", "authority_evidence_id", "reason", "acknowledged_risk",
+    "issued_at", "expires_at", "allow_revision_change"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "waiver_id": {"$ref": "#/$defs/id"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "gate_id": {"$ref": "#/$defs/id"},
+    "finding_id": {"type": ["string", "null"]},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositories", "claim_ids", "architecture_constraint_ids", "environment_id"],
+      "properties": {
+        "repositories": {"type": "object", "additionalProperties": {"type": "string"}},
+        "claim_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+        "architecture_constraint_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+        "environment_id": {"type": ["string", "null"]}
+      }
+    },
+    "approver": {"type": "object", "required": ["id"], "properties": {"id": {"$ref": "#/$defs/id"}}, "additionalProperties": true},
+    "authority_evidence_id": {"$ref": "#/$defs/id"},
+    "reason": {"type": "string", "minLength": 1},
+    "acknowledged_risk": {"type": "string", "minLength": 1},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "allow_revision_change": {"type": "boolean"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}
+  }
+}

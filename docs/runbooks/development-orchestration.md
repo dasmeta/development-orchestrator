@@ -12,7 +12,10 @@ configured child repositories.
 4. Review or edit the generated intake and status files.
 5. Render the feature manifest.
 6. Run the configured stages one repository at a time.
-7. Collect GitHub state and evaluate mergeability.
+7. Capture exact repository subjects and resolve the configured evidence gates.
+8. Collect provider/source-control proof and evaluate the named readiness
+   decision.
+9. Render reports or run the bounded repair cycle.
 
 ## Example Local Dry Run
 
@@ -41,6 +44,13 @@ bash scripts/orchestration/evaluate-mergeability.sh features/FEAT-0001
 
 3. The stage runner passes the control-repo intake into the child repository
    prompt and tells Codex which configured skill to use.
+
+4. Quality-enabled workspaces bind source-control checks to each PR head,
+   independently evaluate `stage-ready`, `merge-ready`, and `release-ready`,
+   and retain legacy mergeability as a projection.
+
+See [Feature Evidence Quality Gates](feature-evidence-quality-gates.md) for the
+complete evidence and repair workflow.
 
 ## Configuration Resolution
 

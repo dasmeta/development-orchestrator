@@ -5,6 +5,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 forbidden_parts=(
+  "Gal""ust"
   "01-product""-requirements"
   "03-shared""-contracts"
   "02-e2e""-tests"
@@ -20,9 +21,24 @@ forbidden_parts=(
 forbidden="$(IFS='|'; echo "${forbidden_parts[*]}")"
 reserved_paths='^(WORKSPACE\.md|config/workspace\.json|00-[^/]*(/|$)|01-[^/]*(/|$)|02-[^/]*(/|$)|03-[^/]*(/|$)|04-[^/]*(/|$)|05-[^/]*(/|$)|workspace(/|$)|overlays(/|$))'
 
+if rg -n '/(Users|home)/|[A-Z]:\\\\' \
+  "$repo_root/scripts" "$repo_root/schemas" "$repo_root/templates" \
+  "$repo_root/config/workspace.example.json"; then
+  echo "generic engine contains an absolute local path" >&2
+  exit 1
+fi
+
+if rg -n 'frontend-tests|product-e2e|visual-review-import|architecture-review-import|orchestrator-core-tests|orchestrator-mcp-tests|orchestrator-scheduled-trigger-test' \
+  "$repo_root/scripts" "$repo_root/schemas" "$repo_root/templates" \
+  "$repo_root/config/workspace.example.json"; then
+  echo "generic engine contains adopter-only provider or evidence identifiers" >&2
+  exit 1
+fi
+
 if rg -n "$forbidden" \
   --glob '!**/test-template-agnostic.sh' \
   "$repo_root/AGENTS.md" \
+  "$repo_root/CLAUDE.md" \
   "$repo_root/AI-INDEX.md" \
   "$repo_root/README.md" \
   "$repo_root/TODO.md" \
