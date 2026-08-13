@@ -976,11 +976,14 @@ active config, overlay, and its test with
 
 **Files:**
 
+- Create: `CLAUDE.md`
+- Create: `tests/orchestration/test-agent-quality-instructions.sh`
 - Create: `tests/orchestration/run-all.sh`
 - Create: `docs/runbooks/feature-evidence-quality-gates.md`
 - Modify: `.github/workflows/control-repo-ci.yml`
-- Modify: `README.md`, `AI-INDEX.md`, `TODO.md`
+- Modify: `AGENTS.md`, `README.md`, `AI-INDEX.md`, `TODO.md`
 - Modify: `docs/runbooks/development-orchestration.md`
+- Modify: `docs/runbooks/template-fork-contract.md`
 - Modify: `tests/orchestration/test-template-agnostic.sh`
 
 - [ ] **Step 1: Add one sorted test runner**
@@ -1003,7 +1006,14 @@ Cover initialization, scope capture, claim/architecture import, providers,
 evaluation, repair cycle, reports, migration, modes, waivers, exits, and the
 distinction between local stage, committed merge, and deployed release proof.
 
-- [ ] **Step 4: Strengthen generic conformance**
+- [ ] **Step 4: Wire agent instruction discovery**
+
+Add the product-agnostic quality lifecycle to root `AGENTS.md`, including the
+stage, merge, release, mode, architecture, repair, and generated-summary rules.
+Add a root `CLAUDE.md` that imports `AGENTS.md`, and test both instruction
+surfaces so Codex and Claude Code receive the same lifecycle contract.
+
+- [ ] **Step 5: Strengthen generic conformance**
 
 Reject adopter names, child IDs, absolute paths, and product-only evidence
 types from generic engine, schema, default policy, and template surfaces.
@@ -1011,7 +1021,7 @@ Tool-specific adapters may name their integration in adapter tests/docs but
 must remain replaceable through provider configuration. Continue excluding
 fork-owned active config, numeric repos, `workspace/`, and `overlays/`.
 
-- [ ] **Step 5: Run and commit**
+- [ ] **Step 6: Run and commit**
 
 Run:
 

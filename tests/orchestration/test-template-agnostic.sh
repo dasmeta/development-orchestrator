@@ -37,6 +37,7 @@ fi
 if rg -n "$forbidden" \
   --glob '!**/test-template-agnostic.sh' \
   "$repo_root/AGENTS.md" \
+  "$repo_root/CLAUDE.md" \
   "$repo_root/AI-INDEX.md" \
   "$repo_root/README.md" \
   "$repo_root/TODO.md" \

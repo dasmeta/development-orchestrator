@@ -19,6 +19,7 @@ feature state, orchestration scripts, and mergeability evaluation.
 | Path | Ownership |
 | --- | --- |
 | `AGENTS.md` | Generic repository routing, lifecycle, and completion instructions loaded by Codex. |
+| `CLAUDE.md` | Claude Code compatibility entry point that imports root `AGENTS.md`. |
 | `config/workspace.example.json` | Example child repository, stage, skill, and merge-gate configuration for template demos and tests. |
 | `schemas/` | Root feature-state schemas. |
 | `scripts/orchestration/` | Workspace orchestration commands and helpers. |
