@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://development-orchestrator.invalid/schemas/quality-gate-plan.schema.json",
+  "title":"Resolved feature quality gate plan",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema_version","feature_id","policy_version","subject_fingerprint","resolved_at","impacts","impact_sources","gates","findings"],
+  "properties":{
+    "schema_version":{"const":"1"},
+    "feature_id":{"type":"string","minLength":1},
+    "policy_version":{"type":"string","minLength":1},
+    "subject_fingerprint":{"type":"string","pattern":"^git-blob:"},
+    "resolved_at":{"type":"string","format":"date-time"},
+    "impacts":{"type":"object","required":["explicit","derived","all"],"properties":{"explicit":{"type":"array","items":{"type":"string"}},"derived":{"type":"array","items":{"type":"string"}},"all":{"type":"array","items":{"type":"string"}}},"additionalProperties":false},
+    "impact_sources":{"type":"array","items":{"type":"object"}},
+    "gates":{"type":"array","items":{"type":"object","required":["id","applicability","reason","decisions","evidence_types","providers","coverage","required_result"],"properties":{"id":{"type":"string"},"applicability":{"enum":["required","not_applicable","unknown"]},"reason":{"type":"string"},"decisions":{"type":"array","items":{"type":"string"}},"evidence_types":{"type":"array","items":{"type":"string"}},"providers":{"type":"array","items":{"type":"string"}},"coverage":{"type":"object"},"required_result":{"type":"string"}},"additionalProperties":false}},
+    "findings":{"type":"array","items":{"type":"object"}}
+  }
+}
