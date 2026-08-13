@@ -12,8 +12,8 @@ The development orchestrator currently routes work across repositories and can
 evaluate configured GitHub status values, but it cannot establish that a
 customer-visible outcome was actually proved. It has no durable model for
 acceptance claims, evidence applicability, tested revisions, independent
-verification, documentation impact, blocked checks, or human-authorized risk
-acceptance.
+verification, architecture conformance, documentation impact, blocked checks,
+or human-authorized risk acceptance.
 
 This design adds a product-agnostic quality control plane that lets autonomous
 coding agents continue working until the required product claims are supported
@@ -32,17 +32,20 @@ The system must:
 
 1. Aggregate readiness across every repository participating in one feature.
 2. Bind acceptance claims and evidence to exact repository revisions.
-3. Compute required gates from product-owned policy and change impact.
-4. Accept evidence from heterogeneous, product-defined tools through a stable
+3. Review applicable product architecture constraints without moving
+   architecture ownership into the control repository.
+4. Compute required gates from product-owned policy and change impact.
+5. Accept evidence from heterogeneous, product-defined tools through a stable
    provider protocol.
-5. Distinguish missing evidence, demonstrated product failure, unavailable
+6. Distinguish missing evidence, demonstrated product failure, unavailable
    infrastructure, and policy ambiguity.
-6. Produce deterministic, actionable repair briefs for autonomous agents.
-7. Prevent an implementation agent from approving its own product intent,
-   waiving gates, or weakening protected validation to make a check pass.
-8. Generate readiness reports and pull-request summaries from verified state.
-9. Retain lightweight release evidence for audit and regression learning.
-10. Keep generic machinery cleanly separable from adopter-specific policy so
+7. Produce deterministic, actionable repair briefs for autonomous agents.
+8. Prevent an implementation agent from approving its own product intent or
+   architecture constraints, waiving gates, or weakening protected validation
+   to make a check pass.
+9. Generate readiness reports and pull-request summaries from verified state.
+10. Retain lightweight release evidence for audit and regression learning.
+11. Keep generic machinery cleanly separable from adopter-specific policy so
     product forks can share the same upstream implementation.
 
 ## 3. Non-goals
@@ -52,6 +55,7 @@ The first implementation will not:
 - replace product requirement repositories, test frameworks, CI systems,
   preview systems, visual-review tools, or artifact stores;
 - define product behavior or decide which customer outcomes are correct;
+- define product architecture or replace a product's architecture governance;
 - require a particular repository layout, programming language, CI vendor,
   browser framework, or deployment platform;
 - build an event-sourced workflow service or long-running orchestration server;
@@ -65,14 +69,15 @@ The first implementation will not:
 
 Only an authorized human may:
 
-- approve product intent and acceptance criteria;
+- approve product intent, acceptance criteria, and governed architecture
+  constraints;
 - issue a scoped, reasoned, expiring waiver;
 - make a final merge or release decision when product governance requires one.
 
-An agent may draft claims or a waiver request, but agent-authored state cannot
-satisfy an approval or waiver gate. Approval and waiver records must be
-collected through a configured trusted authority provider rather than accepted
-as arbitrary feature input.
+An agent may draft claims, architecture decision proposals, or a waiver
+request, but agent-authored state cannot satisfy an approval or waiver gate.
+Approval and waiver records must be collected through a configured trusted
+authority provider rather than accepted as arbitrary feature input.
 
 ### 4.2 Agent authority
 
@@ -104,6 +109,7 @@ feature-level decision. It does not absorb product or repository-local truth.
 | Evidence schemas, policy semantics, evaluator, reports, provider protocol | Generic development orchestrator |
 | Active policy, impact rules, permitted providers, risk thresholds | Product fork configuration |
 | Acceptance behavior and claim approval | Configured intent repository and human authority |
+| Architecture principles, constraints, exceptions, and decision records | Product-configured architecture source repositories and human authority |
 | Shared interface truth | Configured contracts repository |
 | Focused implementation checks and detailed artifacts | Relevant implementation repository or its CI |
 | Executable product E2E cases and deployed execution records | Configured validation repository or its CI |
@@ -120,16 +126,16 @@ The design has four primary components.
 ### 6.1 Evidence contract
 
 A versioned JSON contract represents feature scope, acceptance claims,
-evidence, human waivers, and readiness decisions. The contract defines what
-must be proved and how proof is validated without defining how a tool performs
-the underlying test or review.
+architecture-constraint references, evidence, human waivers, and readiness
+decisions. The contract defines what must be proved and how proof is validated
+without defining how a tool performs the underlying test or review.
 
 ### 6.2 Product policy
 
 Product-owned configuration maps repository roles, changed paths, approved
-feature metadata, and risk classes to required evidence types. It also defines
-permitted providers, evidence freshness, independence requirements, and named
-readiness decisions.
+feature metadata, architecture impact, and risk classes to required evidence
+types. It also defines permitted providers, evidence freshness, independence
+requirements, and named readiness decisions.
 
 ### 6.3 Feature evidence ledger
 
@@ -153,6 +159,7 @@ features/<feature-id>/
 ├── intake.md
 ├── scope.json
 ├── claims.json
+├── architecture.json
 ├── evidence/
 │   └── <evidence-id>.json
 ├── waivers/
@@ -165,9 +172,9 @@ features/<feature-id>/
     └── pr-summary.md
 ```
 
-`scope.json`, `claims.json`, evidence records, and waiver records are evaluator
-inputs. Files under `state/` are derived outputs and must be safe to delete and
-regenerate.
+`scope.json`, `claims.json`, `architecture.json`, evidence records, and waiver
+records are evaluator inputs. Files under `state/` are derived outputs and must
+be safe to delete and regenerate.
 
 Products may configure another durable state or archive destination, but the
 logical ownership and schemas remain unchanged. At release, the lightweight
@@ -210,7 +217,42 @@ material. Each claim record includes:
 The control repository does not become the source of product behavior. The
 digest detects drift between the approved claim and the evidence subject.
 
-### 8.3 Evidence envelope
+### 8.3 Architecture constraints
+
+`architecture.json` contains stable references to the approved architecture
+requirements applicable to the feature. A product may source those
+requirements from one or more configured repositories, decision-record
+systems, or other trusted stores. The control repository does not copy or
+reinterpret architecture truth.
+
+Each referenced constraint includes:
+
+- stable constraint ID and architecture source ID;
+- source repository and revision, or another durable versioned source;
+- source path, section, or external reference;
+- content digest;
+- scope selectors or architecture-impact categories;
+- enforcement level, such as `blocking` or `advisory`, as assigned by product
+  governance;
+- approval or governance reference when the source requires one.
+
+Product policy determines which constraints apply to the resolved change
+scope. An applicable blocking constraint requires architecture-conformance
+evidence. Advisory findings remain visible but do not block unless product
+policy promotes them. If policy indicates architectural impact but the source
+or applicability of required constraints cannot be resolved, the decision is
+`incomplete`.
+
+Architecture review also produces an architecture-decision disposition:
+`updated`, `not_applicable`, or `blocked`. `updated` references the relevant
+approved architecture document or decision-record change. `not_applicable`
+records the deterministic policy reason. An implementation agent cannot assert
+this disposition without evidence from a permitted provider. Conformance with
+an applicable blocking constraint must be produced by a separate verifier run
+or a trusted architecture authority; the implementation run cannot certify its
+own architectural conformance.
+
+### 8.4 Evidence envelope
 
 Every provider emits a normalized record containing at least:
 
@@ -220,6 +262,7 @@ Every provider emits a normalized record containing at least:
 - provider ID and producer identity;
 - producer role and orchestration run ID;
 - covered acceptance claim IDs;
+- covered architecture-constraint IDs where applicable;
 - subject repository revisions;
 - policy and provider-configuration versions;
 - result: `passed`, `failed`, or `blocked`;
@@ -233,13 +276,14 @@ Evidence source records are immutable. A rerun creates a new record and may
 supersede an older record. The evaluator selects valid current evidence; it
 does not rewrite history.
 
-### 8.4 Waiver envelope
+### 8.5 Waiver envelope
 
 A waiver records:
 
 - waiver ID and schema version;
 - exact gate or finding being waived;
-- feature, claim, repository, revision, and environment scope;
+- feature, claim or architecture constraint, repository, revision, and
+  environment scope;
 - human approver identity and trusted approval reference;
 - reason and acknowledged risk;
 - issuance and expiration times;
@@ -257,13 +301,13 @@ this as data.
 Policy defines:
 
 1. **Impact classifiers** based on repository role, changed paths, dependency
-   metadata, and approved feature flags.
+   metadata, approved feature flags, and architecture-sensitive boundaries.
 2. **Risk classification** with product-owned labels and deterministic rules.
 3. **Evidence requirements** for impact and risk combinations.
 4. **Provider mappings** that identify permitted ways to produce each evidence
    type.
-5. **Validity rules** for revision binding, freshness, environment, claim
-   coverage, and artifact integrity.
+5. **Validity rules** for revision binding, freshness, environment, claim and
+   architecture-constraint coverage, and artifact integrity.
 6. **Independence rules** describing which producer roles and run identities
    may satisfy verification gates.
 7. **Named decisions** and the evidence requirements associated with each.
@@ -273,6 +317,8 @@ The generic minimum policy requires:
 
 - approved intent for the behavior in scope;
 - coverage for every applicable acceptance claim;
+- architecture-conformance evidence and architecture-decision disposition when
+  deterministic product policy identifies architectural impact;
 - evidence bound to exact relevant revisions;
 - passed implementation checks for changed implementation surfaces;
 - independent verification for implementation changes, unless deterministic
@@ -311,9 +357,9 @@ A successful process exit is not evidence of success by itself. Output must
 validate against the evidence schema and satisfy policy provenance rules.
 
 Examples of valid product choices include browser automation, hosted visual
-review, repository-native test commands, contract checkers, deployment smoke
-tests, or manual review systems. Their internal formats remain outside the
-orchestrator.
+review, repository-native test commands, architecture linters or reviewers,
+contract checkers, deployment smoke tests, or manual review systems. Their
+internal formats remain outside the orchestrator.
 
 ## 11. Applicability and revision binding
 
@@ -324,12 +370,13 @@ computes it from trusted scope data and policy. A gate may resolve to:
 - `not_applicable`, with the deterministic policy rule recorded;
 - `unknown`, which makes the enclosing decision `incomplete`.
 
-Every gate identifies the repositories and claims relevant to its subject. Its
-evidence must match the exact relevant subject fingerprint. Pre-commit evidence
-may bind to a deterministic Git tree and diff fingerprint; `merge-ready`
-evidence must bind to the committed candidate revisions. A change to a relevant
-subject, claim digest, policy version, provider configuration, or required
-environment invalidates the evidence.
+Every gate identifies the repositories, claims, and architecture constraints
+relevant to its subject. Its evidence must match the exact relevant subject
+fingerprint. Pre-commit evidence may bind to a deterministic Git tree and diff
+fingerprint; `merge-ready` evidence must bind to the committed candidate
+revisions. A change to a relevant subject, claim digest, architecture-constraint
+digest, policy version, provider configuration, or required environment
+invalidates the evidence.
 
 Evidence for an unrelated repository may be reused when declared dependency
 rules establish that its subject is unchanged. This avoids rerunning an entire
@@ -368,7 +415,8 @@ Each decision has one status:
 - `ready`: every applicable gate is satisfied;
 - `incomplete`: evidence or trusted classification is missing, stale,
   malformed, or ambiguous;
-- `failed`: valid evidence demonstrates an unmet product claim;
+- `failed`: valid evidence demonstrates an unmet product claim or an applicable
+  blocking architecture constraint;
 - `blocked`: a required provider, fixture, environment, or external dependency
   cannot execute.
 
@@ -379,15 +427,17 @@ Waivers are recorded at gate level and remain visible within the decision.
 For an approved feature, the orchestrator performs this loop:
 
 1. Resolve participating repositories and lock candidate revisions.
-2. Load approved claim references and verify approval provenance.
-3. Classify impact and compute required gates.
+2. Load approved claim and architecture-constraint references and verify their
+   provenance.
+3. Classify behavioral, repository, and architectural impact and compute
+   required gates.
 4. Execute or collect evidence from configured providers.
-5. Validate envelopes, provenance, claim coverage, revision binding, freshness,
-   environment, and independence.
+5. Validate envelopes, provenance, claim and architecture-constraint coverage,
+   revision binding, freshness, environment, and independence.
 6. Evaluate the requested named decision.
 7. When not ready, generate a bounded repair brief containing stable finding
-   IDs, owning repository, affected claims, permitted write scope, evidence
-   diagnostics, and exact rerun instructions.
+   IDs, owning repository, affected claims or architecture constraints,
+   permitted write scope, evidence diagnostics, and exact rerun instructions.
 8. Run the configured implementation repair stage.
 9. Recollect only invalidated or failed evidence and reevaluate.
 10. Stop when ready, when the configured attempt budget is exhausted, or when
@@ -395,9 +445,12 @@ For an approved feature, the orchestrator performs this loop:
 
 The repair agent may modify only the configured implementation or
 documentation scope named in the brief. It may not make a gate pass by changing
-approved claims, protected validation cases, policy, provider configuration,
-or evidence source records. A legitimate need to change those surfaces routes
-the feature back to the owning stage and invalidates downstream evidence.
+approved claims, governed architecture constraints, protected validation cases,
+policy, provider configuration, or evidence source records. A legitimate need
+to change those surfaces routes the feature back to the owning stage and
+invalidates downstream evidence. Architecture changes require a separate
+proposal and approval through the configured architecture owner; the repair
+loop cannot silently treat implementation divergence as a new architecture.
 
 Independent verification for implementation changes must come from a separate
 run identity and a verifier role that lacks implementation write authority
@@ -410,7 +463,7 @@ The system separates four failure classes:
 
 | Class | Meaning | Default response |
 | --- | --- | --- |
-| Product failure | Valid evidence demonstrates incorrect behavior | Repair implementation and rerun affected evidence |
+| Product failure | Valid evidence demonstrates incorrect behavior or architecture conformance | Repair implementation or route an architecture proposal, then rerun affected evidence |
 | Evidence failure | Proof is missing, malformed, stale, incomplete, or revision-mismatched | Recollect or correct provider output |
 | Infrastructure blockage | Required tool, fixture, preview, integration, or deployed path is unavailable | Retry within budget, then mark blocked |
 | Policy failure | Ownership or applicability cannot be resolved safely | Mark incomplete and request policy or human resolution |
@@ -431,6 +484,7 @@ failures and avoid repeatedly restarting completed work.
 - named decision and overall status;
 - each applicable, not-applicable, waived, and unsatisfied gate;
 - selected evidence IDs and rejected evidence reasons;
+- applicable architecture constraints and their conformance findings;
 - stable findings and ownership;
 - remaining gaps and blockers;
 - evaluation timestamp.
@@ -454,6 +508,7 @@ Summaries are generated from the same ledger and must include:
 - approved outcome and acceptance-claim references;
 - participating repositories and revisions;
 - implementation and contract impact;
+- architecture impact, conformance result, and decision-record disposition;
 - test, visual, E2E, and other applicable evidence;
 - documentation disposition;
 - blockers, known gaps, and waivers;
@@ -474,6 +529,10 @@ Every customer-visible escaped defect must result in:
 3. focused implementation coverage in the owning implementation repository;
 4. a review of impact or evidence policy when the existing policy failed to
    require relevant proof.
+
+When an escaped defect reveals architecture drift or a missing architecture
+constraint, the learning must also be routed to the configured architecture
+owner. The implementation fix alone must not become de facto architecture.
 
 The purpose is to prevent repeated classes of failure, not merely document an
 incident in a pull-request description.
@@ -512,8 +571,8 @@ An adopting product rolls out as follows:
 1. Add schemas, provider protocol, evaluator, reports, and compatibility paths.
 2. Configure product impact rules and repository-local providers in fork-owned
    paths.
-3. Run observe mode on representative backend-only, UI, contract, deployed-E2E,
-   and documentation-only features.
+3. Run observe mode on representative backend-only, UI, contract,
+   architecture-sensitive, deployed-E2E, and documentation-only features.
 4. Compare decisions with discovered defects and operator review; tune product
    applicability and provider mappings without weakening evaluator semantics.
 5. Enable enforcement for the generic minimum policy.
@@ -529,14 +588,16 @@ bounded calibration mechanism, not a permanent substitute for enforcement.
 
 ### 19.1 Schema validation
 
-Maintain accepted and rejected fixtures for feature scope, claims, evidence,
-waivers, provider configuration, and readiness output.
+Maintain accepted and rejected fixtures for feature scope, claims,
+architecture constraints, evidence, waivers, provider configuration, and
+readiness output.
 
 ### 19.2 Policy evaluation
 
 Use table-driven tests for required, not-applicable, unknown, passed, failed,
-blocked, stale, wrong-revision, wrong-environment, insufficient-coverage,
-expired-waiver, and valid-waiver cases.
+blocked, stale, wrong-revision, wrong-environment, insufficient claim or
+architecture coverage, advisory architecture findings, blocking architecture
+violations, expired waivers, and valid waivers.
 
 ### 19.3 Provider contracts
 
@@ -555,13 +616,15 @@ invalidation, partial reruns, and exact revision binding.
 Use deterministic fake builder and verifier stages to demonstrate failure
 discovery, bounded repair, evidence replacement through supersession, and final
 readiness. Prove that repair runs cannot alter protected claims, policy,
-providers, validation inputs, or prior evidence.
+governed architecture constraints, providers, validation inputs, or prior
+evidence.
 
 ### 19.6 Report consistency
 
 Generate readiness, repair, pull-request, and release outputs from the same
 fixtures. Assert that failures, blockers, gaps, tested revisions, documentation
-disposition, and waivers cannot disappear from one representation.
+and architecture dispositions, and waivers cannot disappear from one
+representation.
 
 ### 19.7 Product-agnostic conformance
 
@@ -577,6 +640,8 @@ Before enforcement, run at least these product scenarios:
 - backend-only implementation with focused checks and independent verification;
 - UI change with product-configured browser or visual evidence;
 - shared-contract change spanning several repositories;
+- architecture-sensitive change with conformance evidence and a decision-record
+  disposition;
 - documentation-only change with deterministic not-applicable decisions;
 - required deployed-path E2E that is intentionally unavailable and therefore
   blocks;
@@ -604,6 +669,7 @@ plane. It will not introduce a database or daemon.
 The first release must deliver:
 
 - versioned source and derived schemas;
+- versioned architecture-constraint references and conformance evidence;
 - deterministic scope fingerprinting and evidence validation;
 - configurable impact, requirement, provider, and named-decision policy;
 - command and import provider paths plus compatibility with existing GitHub
@@ -631,8 +697,8 @@ The design is successfully implemented when:
    wrong-revision, or unknown required gate in enforce mode.
 3. An implementation agent cannot satisfy approval, waiver, or independent
    verification through its own output.
-4. A multi-repository feature reports one aggregate decision with repository-
-   and claim-specific findings.
+4. A multi-repository feature reports one aggregate decision with findings
+   specific to repositories, claims, and architecture constraints.
 5. A product can replace an evidence-producing tool without modifying generic
    evaluator code.
 6. Generated summaries match the current evidence ledger and expose all gaps,
@@ -641,3 +707,6 @@ The design is successfully implemented when:
 8. Generic conformance tests pass with adopter configuration excluded.
 9. The initial adopter completes the dogfood scenarios before making
    `merge-ready` a required check.
+10. An architecture-sensitive change cannot become merge-ready when an
+    applicable blocking constraint is violated, unresolved, or covered only by
+    implementation self-certification.
