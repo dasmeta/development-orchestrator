@@ -4,12 +4,19 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; source "$repo_r
 tmp_dir="$(mktemp -d)"; trap 'rm -rf "$tmp_dir"' EXIT
 feature_dir="$tmp_dir/features/FEAT-V"; mkdir -p "$feature_dir/state" "$feature_dir/evidence" "$feature_dir/waivers" "$tmp_dir/config" "$tmp_dir/app"
 git init -q "$tmp_dir/app"; git -C "$tmp_dir/app" config user.name Test; git -C "$tmp_dir/app" config user.email test@example.invalid; printf 'base\n' > "$tmp_dir/app/a.txt"; git -C "$tmp_dir/app" add a.txt; git -C "$tmp_dir/app" commit -qm base
+base_oid="$(git -C "$tmp_dir/app" rev-parse HEAD)"
+printf 'feature-change\n' > "$tmp_dir/app/a.txt"
+git -C "$tmp_dir/app" add a.txt
+git -C "$tmp_dir/app" commit -qm feature
+feature_oid="$(git -C "$tmp_dir/app" rev-parse HEAD)"
 cat > "$tmp_dir/fake-verifier" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 repository="$1"; prompt="$2"; schema="$3"; result="$4"
 [[ -d "$repository" && -f "$prompt" && -f "$schema" ]]
 grep -q 'Do not edit files' "$prompt"; grep -q 'AC-1' "$prompt"; grep -q 'ARCH-1' "$prompt"
+[[ -z "${VERIFY_EXPECTED_DIFF:-}" ]] || grep -Fq "$VERIFY_EXPECTED_DIFF" "$prompt"
+[[ -z "${VERIFY_EXPECTED_UNTRACKED:-}" ]] || grep -Fq "$VERIFY_EXPECTED_UNTRACKED" "$prompt"
 printf '%s\n' '{"result":"passed","covered_claim_ids":["AC-1"],"covered_architecture_constraint_ids":["ARCH-1"],"architecture_disposition":"not_applicable","documentation_disposition":"updated","artifact_references":[{"uri":"changes/FEAT-V.md","digest":"git-blob:abc"}],"findings":[],"known_gaps":[]}' > "$result"
 SH
 chmod +x "$tmp_dir/fake-verifier"
@@ -21,7 +28,7 @@ cat > "$feature_dir/intake.md" <<'EOF'
 # Feature verifier test
 EOF
 cat > "$feature_dir/scope.json" <<JSON
-{"schema_version":"1","feature_id":"FEAT-V","repositories":[{"id":"app","role":"implementation","subject":"commit:$(git -C "$tmp_dir/app" rev-parse HEAD)","changed_paths":["a.txt"]}],"explicit_impacts":["implementation"],"derived_impacts":[],"policy_version":"1"}
+{"schema_version":"1","feature_id":"FEAT-V","repositories":[{"id":"app","role":"implementation","subject":"commit:$feature_oid","base":"$base_oid","head":"$feature_oid","changed_paths":["a.txt"]}],"explicit_impacts":["implementation"],"derived_impacts":[],"policy_version":"1"}
 JSON
 cat > "$feature_dir/claims.json" <<'JSON'
 {"schema_version":"1","feature_id":"FEAT-V","claims":[{"id":"AC-1","source":{"repository_id":"intent","revision":"1","path":"spec.md"},"content_digest":"x"}]}
@@ -30,10 +37,34 @@ cat > "$feature_dir/architecture.json" <<'JSON'
 {"schema_version":"1","feature_id":"FEAT-V","sources":[{"id":"S","repository_id":"arch","revision":"1","path":"adr.md","content_digest":"x","approval_evidence_id":null}],"constraints":[{"id":"ARCH-1","source_id":"S","content_digest":"x","impacts":["implementation"],"enforcement":"blocking","approval_evidence_id":null}]}
 JSON
 cat > "$feature_dir/state/gate-plan.json" <<'JSON'
-{"schema_version":"1","feature_id":"FEAT-V","policy_version":"1","subject_fingerprint":"git-blob:scope","resolved_at":"2026-08-13T00:00:00Z","impacts":{"explicit":["implementation"],"derived":[],"all":["implementation"]},"impact_sources":[],"gates":[{"id":"independent","applicability":"required","reason":"match","decisions":["merge-ready"],"evidence_types":["independent-verification"],"providers":["verifier"],"coverage":{"claims":"all","architecture":"all_blocking"},"required_result":"passed"}],"findings":[]}
+{"schema_version":"1","feature_id":"FEAT-V","policy_version":"1","subject_fingerprint":"git-blob:scope","resolved_at":"2026-08-13T00:00:00Z","impacts":{"explicit":["implementation"],"derived":[],"all":["implementation"]},"impact_sources":[],"gates":[{"id":"independent","applicability":"required","reason":"match","decisions":["merge-ready"],"evidence_types":["independent-verification"],"providers":["verifier"],"provider_strategy":"all","coverage":{"claims":"all","architecture":"all_blocking"},"required_result":"passed"}],"findings":[]}
 JSON
 assert_command_fails bash "$repo_root/scripts/orchestration/run-independent-verifier.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --provider verifier --repository app --implementation-run-id same-run --run-id same-run
-bash "$repo_root/scripts/orchestration/run-independent-verifier.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --provider verifier --repository app --implementation-run-id implementation-run --run-id verifier-run --now 2026-08-13T01:00:00Z
+VERIFY_EXPECTED_DIFF=feature-change bash "$repo_root/scripts/orchestration/run-independent-verifier.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --provider verifier --repository app --implementation-run-id implementation-run --run-id verifier-run --now 2026-08-13T01:00:00Z
 evidence="$feature_dir/evidence/EV-verifier-independent-verifier-run.json"; assert_file_exists "$evidence"
-jq -e '.result=="passed" and .producer.run_id=="verifier-run" and .coverage.claim_ids==["AC-1"] and .coverage.architecture_constraint_ids==["ARCH-1"] and .producer.role=="verification"' "$evidence" >/dev/null
+jq -e '.result=="passed" and .producer.run_id=="verifier-run" and .coverage.repository_ids==["app"] and .coverage.claim_ids==["AC-1"] and .coverage.architecture_constraint_ids==["ARCH-1"] and .subject.repositories=={app:("commit:"+$head)} and .producer.role=="verification"' --arg head "$feature_oid" "$evidence" >/dev/null
 assert_file_exists "$feature_dir/state/provider-runs/verifier-run/verifier/verifier-prompt.md"
+
+printf 'worktree-change\n' > "$tmp_dir/app/a.txt"
+printf 'untracked-change\n' > "$tmp_dir/app/new.txt"
+bash "$repo_root/scripts/orchestration/capture-feature-scope.sh" \
+  --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" \
+  --repository app --base "$base_oid" --head WORKTREE \
+  --now 2026-08-13T01:05:00Z
+worktree_subject="$(jq -r '.repositories[0].subject' "$feature_dir/scope.json")"
+VERIFY_EXPECTED_DIFF=worktree-change VERIFY_EXPECTED_UNTRACKED=untracked-change \
+  bash "$repo_root/scripts/orchestration/run-independent-verifier.sh" \
+    --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" \
+    --provider verifier --repository app \
+    --implementation-run-id implementation-worktree \
+    --run-id verifier-worktree --now 2026-08-13T01:06:00Z
+jq -e '.coverage.repository_ids==["app"] and .subject.repositories.app==$subject' \
+  --arg subject "$worktree_subject" \
+  "$feature_dir/evidence/EV-verifier-independent-verifier-worktree.json" >/dev/null
+
+printf 'changed-after-capture\n' >> "$tmp_dir/app/a.txt"
+assert_command_fails bash "$repo_root/scripts/orchestration/run-independent-verifier.sh" \
+  --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" \
+  --provider verifier --repository app \
+  --implementation-run-id implementation-stale \
+  --run-id verifier-stale --now 2026-08-13T01:07:00Z

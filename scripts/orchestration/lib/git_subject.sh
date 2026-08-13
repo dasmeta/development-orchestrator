@@ -56,6 +56,55 @@ git_worktree_subject() {
   printf 'worktree:%s\n' "$(printf '%s' "$canonical_subject" | stdin_digest)"
 }
 
+git_subject_diff() {
+  local repository_path="$1"
+  local base_oid="$2"
+  local head_oid="$3"
+  local subject="$4"
+  local current_subject
+  local path
+  local diff_status
+
+  git_commit_oid "$repository_path" "$base_oid" >/dev/null
+  git_commit_oid "$repository_path" "$head_oid" >/dev/null
+
+  case "$subject" in
+    commit:*)
+      if [[ "$subject" != "commit:$head_oid" ]]; then
+        echo "captured commit subject does not match its head" >&2
+        return 1
+      fi
+      git -C "$repository_path" diff \
+        --binary --no-ext-diff --no-textconv "$base_oid" "$head_oid" --
+      ;;
+    worktree:*)
+      current_subject="$(git_worktree_subject "$repository_path")"
+      if [[ "$current_subject" != "$subject" ]]; then
+        echo "captured worktree subject is stale" >&2
+        return 1
+      fi
+      git -C "$repository_path" diff \
+        --binary --no-ext-diff --no-textconv "$base_oid" --
+      while IFS= read -r -d '' path; do
+        printf '\n# Untracked file: %s\n' "$path"
+        diff_status=0
+        git -C "$repository_path" diff --no-index \
+          --binary --no-ext-diff --no-textconv -- /dev/null "$path" || \
+          diff_status=$?
+        if [[ $diff_status -ne 1 ]]; then
+          echo "failed to render untracked file diff: $path" >&2
+          return 1
+        fi
+      done < <(git -C "$repository_path" ls-files \
+        --others --exclude-standard -z)
+      ;;
+    *)
+      echo "unsupported captured subject: $subject" >&2
+      return 1
+      ;;
+  esac
+}
+
 git_changed_paths_json() {
   local repository_path="$1"
   local base_revision="$2"

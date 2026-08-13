@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; control_repo_root="$(cd "$script_dir/../.." && pwd)"
-source "$script_dir/lib/feature_paths.sh"; source "$script_dir/lib/workspace_config.sh"
+source "$script_dir/lib/feature_paths.sh"; source "$script_dir/lib/workspace_config.sh"; source "$script_dir/lib/git_subject.sh"
 feature_dir=""; provider_id=""; repository_id=""; implementation_run_id=""; run_id=""; now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; config_path="$(default_workspace_config_path "$script_dir")"
 while [[ $# -gt 0 ]]; do case "$1" in --feature-dir) feature_dir="$2"; shift 2;; --config) config_path="$2"; shift 2;; --provider) provider_id="$2"; shift 2;; --repository) repository_id="$2"; shift 2;; --implementation-run-id) implementation_run_id="$2"; shift 2;; --run-id) run_id="$2"; shift 2;; --now) now="$2"; shift 2;; *) echo "unknown arg: $1" >&2; exit 1;; esac; done
 [[ -n "$feature_dir" && -n "$provider_id" && -n "$repository_id" && -n "$implementation_run_id" && -n "$run_id" ]] || { echo "feature directory, provider, repository, implementation run, and verifier run are required" >&2; exit 1; }
@@ -11,6 +11,12 @@ jq -e --arg id "$provider_id" '.providers[$id].kind=="verifier" and (.providers[
 repository="$(workspace_repository_path "$config_path" "$repository_id")"; repository="$(cd "$repository" && pwd)"
 run_dir="$feature_dir/state/provider-runs/$run_id/$provider_id"; mkdir -p "$run_dir"; prompt="$run_dir/verifier-prompt.md"; result="$run_dir/verifier-result.json"; schema="$control_repo_root/schemas/verifier-result.schema.json"
 template="$control_repo_root/templates/quality/verifier-prompt.md"; scope="$(feature_scope_path "$feature_dir")"; claims="$(feature_claims_path "$feature_dir")"; architecture="$(feature_architecture_path "$feature_dir")"; gate_plan="$feature_dir/state/gate-plan.json"
+scope_record="$(jq -c --arg id "$repository_id" '[.repositories[] | select(.id==$id)] | if length==1 then .[0] else empty end' "$scope")"
+[[ -n "$scope_record" ]] || { echo "verifier repository is missing from feature scope: $repository_id" >&2; exit 1; }
+base_oid="$(printf '%s' "$scope_record" | jq -r '.base // empty')"
+head_oid="$(printf '%s' "$scope_record" | jq -r '.head // empty')"
+repository_subject="$(printf '%s' "$scope_record" | jq -r '.subject // empty')"
+[[ -n "$base_oid" && -n "$head_oid" && -n "$repository_subject" ]] || { echo "verifier repository scope requires base, head, and subject" >&2; exit 1; }
 while IFS= read -r line || [[ -n "$line" ]]; do
   case "$line" in
     '{{INTAKE}}') [[ -f "$feature_dir/intake.md" ]] && sed -n '1,240p' "$feature_dir/intake.md" || printf 'No intake document supplied.\n';;
@@ -18,7 +24,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     '{{CLAIMS}}') jq -S . "$claims";;
     '{{ARCHITECTURE}}') jq -S . "$architecture";;
     '{{GATE_PLAN}}') jq -S . "$gate_plan";;
-    '{{DIFF}}') git -C "$repository" diff --binary --no-ext-diff HEAD -- || true;;
+    '{{DIFF}}') git_subject_diff "$repository" "$base_oid" "$head_oid" "$repository_subject";;
     *) printf '%s\n' "$line";;
   esac
 done < "$template" > "$prompt"
@@ -40,10 +46,11 @@ jq -e '
  (.findings|type=="array") and (.known_gaps|type=="array") and
  (if (.architecture_disposition=="updated" or .documentation_disposition=="updated") then (.artifact_references|length)>0 else true end)
 ' "$result" >/dev/null || { echo "configured verifier emitted an invalid result" >&2; exit 1; }
-subjects="$(jq -c '.repositories|map({key:.id,value:.subject})|from_entries' "$scope")"
+subjects="$(jq -cn --arg id "$repository_id" --arg subject "$repository_subject" '{($id):$subject}')"
+repository_ids="$(jq -cn --arg id "$repository_id" '[$id]')"
 jq -r --arg provider "$provider_id" '.gates[]|select(.applicability=="required" and (.providers|index($provider)))|[.id,.evidence_types[0]]|@tsv' "$gate_plan" | while IFS=$'\t' read -r gate_id evidence_type; do
   evidence_id="EV-$provider_id-$gate_id-$run_id"; payload="$run_dir/$evidence_id.payload.json"
-  jq --arg id "$evidence_id" --arg feature "$(feature_id_from_dir "$feature_dir")" --arg type "$evidence_type" --arg provider "$provider_id" --arg now "$now" --argjson subjects "$subjects" '
-   {schema_version:"1",evidence_id:$id,feature_id:$feature,evidence_type:$type,provider_id:$provider,producer:{id:"independent-verifier",role:"pending",run_id:"pending"},coverage:{claim_ids:.covered_claim_ids,architecture_constraint_ids:.covered_architecture_constraint_ids},subject:{repositories:$subjects},policy_version:"pending",provider_config_digest:"pending",result:.result,outcome:("architecture:"+.architecture_disposition+",documentation:"+.documentation_disposition),environment:{id:"local",fixture:null},collected_at:$now,expires_at:null,artifacts:[.artifact_references[]|{reference:.uri,digest:.digest,media_type:null}],findings:.findings,known_gaps:.known_gaps}' "$result" > "$payload"
+  jq --arg id "$evidence_id" --arg feature "$(feature_id_from_dir "$feature_dir")" --arg type "$evidence_type" --arg provider "$provider_id" --arg now "$now" --argjson repository_ids "$repository_ids" --argjson subjects "$subjects" '
+   {schema_version:"1",evidence_id:$id,feature_id:$feature,evidence_type:$type,provider_id:$provider,producer:{id:"independent-verifier",role:"pending",run_id:"pending"},coverage:{repository_ids:$repository_ids,claim_ids:.covered_claim_ids,architecture_constraint_ids:.covered_architecture_constraint_ids},subject:{repositories:$subjects},policy_version:"pending",provider_config_digest:"pending",result:.result,outcome:("architecture:"+.architecture_disposition+",documentation:"+.documentation_disposition),environment:{id:"local",fixture:null},collected_at:$now,expires_at:null,artifacts:[.artifact_references[]|{reference:.uri,digest:.digest,media_type:null}],findings:.findings,known_gaps:.known_gaps}' "$result" > "$payload"
   bash "$script_dir/ingest-evidence.sh" --feature-dir "$feature_dir" --config "$config_path" --provider "$provider_id" --producer-id independent-verifier --run-id "$run_id" --input "$payload"
 done
