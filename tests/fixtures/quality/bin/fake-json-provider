@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' '{"schema_version":"1","evidence_id":"EV-json","feature_id":"ignored","evidence_type":"focused-tests","provider_id":"ignored","producer":{"id":"ignored","role":"implementation","run_id":"ignored"},"coverage":{"claim_ids":["AC-1"],"architecture_constraint_ids":[]},"subject":{"repositories":{"app":"commit:abc"}},"policy_version":"ignored","provider_config_digest":"ignored","result":"passed","outcome":"completed","environment":{"id":"local","fixture":null},"collected_at":"2026-08-13T01:00:00Z","expires_at":null,"artifacts":[],"findings":[],"known_gaps":[]}'
