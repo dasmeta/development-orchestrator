@@ -1,6 +1,9 @@
 {
   "pull_request": {
     "approved": true,
-    "merged": false
+    "merged": false,
+    "head_oid": "1111111111111111111111111111111111111111",
+    "url": "https://github.com/example/implementation/pull/12",
+    "reviewers": ["reviewer-one"]
   }
 }

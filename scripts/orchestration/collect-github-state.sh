@@ -11,6 +11,7 @@ require_command jq
 feature_dir=""
 fixtures_dir=""
 repo=""
+repo_id=""
 pr_number=""
 config_path="$(default_workspace_config_path "$script_dir")"
 
@@ -43,6 +44,10 @@ while [[ $# -gt 0 ]]; do
       repo="$2"
       shift 2
       ;;
+    --repo-id)
+      repo_id="$2"
+      shift 2
+      ;;
     --pr-number)
       pr_number="$2"
       shift 2
@@ -67,6 +72,10 @@ require_workspace_config "$config_path"
 mkdir -p "$feature_dir/state"
 
 if [[ -n "$fixtures_dir" ]]; then
+  if [[ "$(workspace_quality_mode "$config_path")" == "enforce" ]]; then
+    echo "fixtures cannot be used for enforced GitHub evidence" >&2
+    exit 1
+  fi
   jq -n \
     --slurpfile pr "$fixtures_dir/pr-approved.json" \
     --slurpfile checks "$fixtures_dir/checks-green.json" \
@@ -86,7 +95,7 @@ fi
 
 require_command gh
 
-pr_json="$(gh pr view "$pr_number" --repo "$repo" --json reviewDecision,mergeStateStatus,statusCheckRollup,url,headRefName)"
+pr_json="$(gh pr view "$pr_number" --repo "$repo" --json reviewDecision,mergeStateStatus,statusCheckRollup,url,headRefName,headRefOid,latestReviews)"
 
 check_patterns_json="$(jq -c '.github_state.check_name_patterns // {}' "$config_path")"
 check_keys="$(printf '%s' "$check_patterns_json" | jq -r 'keys[] | select(. != "preview")')"
@@ -103,6 +112,19 @@ checks_json="$(
       '
     )"
     jq -n --arg key "$check_key" --arg value "$(normalize_check_status "$raw_status")" '{($key): $value}'
+  done | jq -s 'add // {}'
+)"
+checks_with_urls_json="$(
+  printf '%s\n' "$check_keys" | while IFS= read -r check_key; do
+    [[ -n "$check_key" ]] || continue
+    patterns="$(printf '%s' "$check_patterns_json" | jq -c --arg key "$check_key" '.[$key] // [$key]')"
+    check_record="$(printf '%s' "$pr_json" | jq -c --argjson patterns "$patterns" '
+      [.statusCheckRollup[]?
+       | select(.name as $name | ($patterns | any(. as $pattern | ($name | ascii_downcase | contains($pattern)))))][0] // {}
+    ')"
+    raw_status="$(printf '%s' "$check_record" | jq -r '.conclusion // "PENDING"')"
+    url="$(printf '%s' "$check_record" | jq -r '.detailsUrl // empty')"
+    jq -n --arg key "$check_key" --arg status "$(normalize_check_status "$raw_status")" --arg url "$url" '{($key):{status:$status,url:$url}}'
   done | jq -s 'add // {}'
 )"
 preview_patterns="$(printf '%s' "$check_patterns_json" | jq -c '.preview // ["preview","deploy"]')"
@@ -134,6 +156,24 @@ case "$preview_status_raw" in
     preview_status="pending"
     ;;
 esac
+
+if [[ -n "$repo_id" ]]; then
+  mkdir -p "$feature_dir/state/github"
+  jq -n \
+    --arg repository_id "$repo_id" \
+    --arg repo "$repo" \
+    --arg url "$(printf '%s' "$pr_json" | jq -r '.url // empty')" \
+    --arg head_ref "$(printf '%s' "$pr_json" | jq -r '.headRefName // empty')" \
+    --arg head_oid "$(printf '%s' "$pr_json" | jq -r '.headRefOid // empty')" \
+    --argjson approved "$(printf '%s' "$pr_json" | jq '.reviewDecision == "APPROVED"')" \
+    --argjson merged "$(printf '%s' "$pr_json" | jq '.mergeStateStatus == "MERGED"')" \
+    --argjson reviewers "$(printf '%s' "$pr_json" | jq '[.latestReviews[]? | select(.state=="APPROVED") | .author.login] | unique | sort')" \
+    --argjson checks "$checks_with_urls_json" \
+    --arg preview_status "$preview_status" --arg preview_url "$preview_url" '
+      {repository_id:$repository_id,repository:$repo,pull_request:{approved:$approved,merged:$merged,url:$url,head_ref:$head_ref,head_oid:$head_oid,reviewers:$reviewers},checks:$checks,preview:{status:$preview_status,url:$preview_url}}
+    ' > "$feature_dir/state/github/$repo_id.json"
+  exit 0
+fi
 
 jq -n \
   --argjson approved "$(printf '%s' "$pr_json" | jq '.reviewDecision == "APPROVED"')" \
