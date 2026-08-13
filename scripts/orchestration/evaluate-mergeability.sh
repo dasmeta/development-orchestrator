@@ -39,12 +39,21 @@ require_workspace_config "$config_path"
 manifest_path="$(feature_manifest_path "$feature_dir")"
 github_state_path="$feature_dir/state/github-state.json"
 
-if [[ ! -f "$manifest_path" || ! -f "$github_state_path" ]]; then
-  echo "manifest and github state are required" >&2
+if [[ ! -f "$manifest_path" ]]; then
+  echo "manifest is required" >&2
   exit 1
 fi
-
-if jq -e --slurpfile cfg "$config_path" '
+quality_mode="$(workspace_quality_mode "$config_path")"
+if [[ "$quality_mode" != "off" && -f "$feature_dir/state/readiness.json" && -f "$feature_dir/state/gate-plan.json" ]]; then
+  if jq -e --slurpfile plan "$feature_dir/state/gate-plan.json" '.decision=="merge-ready" and .status=="ready" and .subject_fingerprint==$plan[0].subject_fingerprint' "$feature_dir/state/readiness.json" >/dev/null; then
+    ready=true; reason="merge_ready"
+  else
+    ready=false; reason="merge_evidence_incomplete"
+  fi
+elif [[ ! -f "$github_state_path" ]]; then
+  echo "manifest and github state are required" >&2
+  exit 1
+elif jq -e --slurpfile cfg "$config_path" '
   [($cfg[0].mergeability.required // [])[] as $gate
     | getpath(($gate.path | ltrimstr(".") | split("."))) == $gate.equals
   ] | all

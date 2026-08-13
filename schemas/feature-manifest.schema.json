@@ -35,6 +35,20 @@
         }
       },
       "additionalProperties": false
+    },
+    "quality": {
+      "type": ["object", "null"],
+      "properties": {
+        "schema_version": {"const": "1"},
+        "mode": {"enum": ["off", "observe", "enforce"]},
+        "scope": {"type": "string"},
+        "claims": {"type": "string"},
+        "architecture": {"type": "string"},
+        "gate_plan": {"type": "string"},
+        "readiness": {"type": "string"},
+        "current_decision": {"type": "string"}
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

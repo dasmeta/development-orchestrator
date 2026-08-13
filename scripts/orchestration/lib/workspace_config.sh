@@ -62,6 +62,11 @@ workspace_stage_skill() {
     "$config_path"
 }
 
+workspace_stage_advance_decision() {
+  local config_path="$1" stage="$2"
+  jq -r --arg stage "$stage" '.stages[]? | select(.id==$stage) | .advance_decision // "stage-ready"' "$config_path"
+}
+
 workspace_repository_path() {
   local config_path="$1"
   local repo_id="$2"

@@ -41,11 +41,17 @@ manifest_path="$(feature_manifest_path "$feature_dir")"
 mkdir -p "$(dirname "$manifest_path")"
 initial_stage="$(workspace_initial_stage "$config_path")"
 repositories_json="$(workspace_repository_ids_json "$config_path")"
+quality_mode="$(workspace_quality_mode "$config_path")"
+quality_json="null"
+if [[ "$quality_mode" != "off" || $(jq -r 'has("quality")' "$config_path") == true ]]; then
+  quality_json="$(jq -n --arg mode "$quality_mode" '{schema_version:"1",mode:$mode,scope:"../scope.json",claims:"../claims.json",architecture:"../architecture.json",gate_plan:"gate-plan.json",readiness:"readiness.json",current_decision:"stage-ready"}')"
+fi
 
 jq -n \
   --arg feature_id "$feature_id" \
   --arg stage "$initial_stage" \
   --argjson repositories "$repositories_json" \
+  --argjson quality "$quality_json" \
   '{
     feature_id: $feature_id,
     stage: $stage,
@@ -53,5 +59,6 @@ jq -n \
     mergeability: {
       ready: false,
       reason: "configured_gates_incomplete"
-    }
+    },
+    quality: $quality
   }' > "$manifest_path"
