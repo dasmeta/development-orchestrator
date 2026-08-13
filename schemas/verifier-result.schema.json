@@ -1,0 +1,6 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://development-orchestrator.invalid/schemas/verifier-result.schema.json","title":"Independent verifier result","type":"object","additionalProperties":false,
+ "required":["result","covered_claim_ids","covered_architecture_constraint_ids","architecture_disposition","documentation_disposition","artifact_references","findings","known_gaps"],
+ "properties":{"result":{"enum":["passed","failed","blocked"]},"covered_claim_ids":{"type":"array","items":{"type":"string"}},"covered_architecture_constraint_ids":{"type":"array","items":{"type":"string"}},"architecture_disposition":{"enum":["updated","not_applicable","blocked"]},"documentation_disposition":{"enum":["updated","not_applicable","blocked"]},"artifact_references":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["uri","digest"],"properties":{"uri":{"type":"string","minLength":1},"digest":{"type":"string","minLength":1}}}},"findings":{"type":"array","items":{"type":"object"}},"known_gaps":{"type":"array","items":{"type":"object"}}},
+ "allOf":[{"if":{"anyOf":[{"properties":{"architecture_disposition":{"const":"updated"}}},{"properties":{"documentation_disposition":{"const":"updated"}}}]},"then":{"properties":{"artifact_references":{"minItems":1}}}}]
+}
