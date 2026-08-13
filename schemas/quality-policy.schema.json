@@ -97,6 +97,7 @@
         },
         "evidence_types": {"$ref": "#/$defs/string_array"},
         "providers": {"$ref": "#/$defs/string_array"},
+        "provider_strategy": {"enum": ["all", "any"]},
         "coverage": {
           "type": "object",
           "additionalProperties": false,

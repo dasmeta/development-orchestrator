@@ -5,7 +5,7 @@
   "evidence_type": "focused-tests",
   "provider_id": "untrusted-provider",
   "producer": {"id": "untrusted", "role": "implementation", "run_id": "untrusted-run"},
-  "coverage": {"claim_ids": ["AC-1"], "architecture_constraint_ids": []},
+  "coverage": {"repository_ids": ["implementation"], "claim_ids": ["AC-1"], "architecture_constraint_ids": []},
   "subject": {"repositories": {"implementation": "commit:abc"}},
   "policy_version": "untrusted",
   "provider_config_digest": "untrusted",

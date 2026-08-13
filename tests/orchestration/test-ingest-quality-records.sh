@@ -104,6 +104,16 @@ jq '.evidence_id = "EV-malformed" | del(.coverage.claim_ids)' \
 assert_command_fails ingest_evidence \
   repository-tests ci run-2 "$tmp_dir/malformed.json"
 
+jq '.evidence_id = "EV-missing-repositories" | del(.coverage.repository_ids)' \
+  "$tmp_dir/evidence.json" > "$tmp_dir/missing-repositories.json"
+assert_command_fails ingest_evidence \
+  repository-tests ci run-2 "$tmp_dir/missing-repositories.json"
+
+jq '.evidence_id = "EV-unbound-repository" | .coverage.repository_ids = ["other"]' \
+  "$tmp_dir/evidence.json" > "$tmp_dir/unbound-repository.json"
+assert_command_fails ingest_evidence \
+  repository-tests ci run-2 "$tmp_dir/unbound-repository.json"
+
 jq '.evidence_id = "EV-mismatch" | .evidence_type = "build"' \
   "$tmp_dir/evidence.json" > "$tmp_dir/mismatch.json"
 assert_command_fails ingest_evidence \

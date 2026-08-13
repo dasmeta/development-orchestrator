@@ -29,8 +29,14 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["claim_ids", "architecture_constraint_ids"],
+      "required": ["repository_ids", "claim_ids", "architecture_constraint_ids"],
       "properties": {
+        "repository_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
         "claim_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}},
         "architecture_constraint_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}}
       }

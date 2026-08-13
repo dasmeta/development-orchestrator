@@ -135,6 +135,32 @@ jq '.gates[0].providers = ["missing-provider"]' \
 assert_command_fails validate_quality_policy "$unknown_provider_policy"
 grep -Fq "unknown provider" "$tmp_dir/command.stderr"
 
+ambiguous_providers_policy="$tmp_dir/ambiguous-providers.json"
+jq '
+  .providers["repository-tests-alt"] = .providers["repository-tests"] |
+  .gates[0].providers = ["repository-tests", "repository-tests-alt"]
+' "$valid_policy" > "$ambiguous_providers_policy"
+assert_command_fails validate_quality_policy "$ambiguous_providers_policy"
+grep -Fq "multi-provider gate requires provider_strategy" \
+  "$tmp_dir/command.stderr"
+
+all_providers_policy="$tmp_dir/all-providers.json"
+jq '.gates[0].provider_strategy = "all"' \
+  "$ambiguous_providers_policy" > "$all_providers_policy"
+validate_quality_policy "$all_providers_policy"
+
+any_provider_policy="$tmp_dir/any-provider.json"
+jq '.gates[0].provider_strategy = "any"' \
+  "$ambiguous_providers_policy" > "$any_provider_policy"
+validate_quality_policy "$any_provider_policy"
+
+invalid_provider_strategy_policy="$tmp_dir/invalid-provider-strategy.json"
+jq '.gates[0].provider_strategy = "latest"' \
+  "$ambiguous_providers_policy" > "$invalid_provider_strategy_policy"
+assert_command_fails validate_quality_policy \
+  "$invalid_provider_strategy_policy"
+grep -Fq "invalid quality policy structure" "$tmp_dir/command.stderr"
+
 unknown_gate_decision_policy="$tmp_dir/unknown-gate-decision.json"
 jq '.gates[0].decisions = ["missing-decision"]' \
   "$valid_policy" >"$unknown_gate_decision_policy"

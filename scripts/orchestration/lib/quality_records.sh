@@ -64,12 +64,18 @@ validate_evidence_record() {
     (.producer.role | valid_id) and
     (.producer.run_id | valid_id) and
     (.coverage | type == "object") and
+    (.coverage.repository_ids | id_array and length > 0) and
     (.coverage.claim_ids | id_array) and
     (.coverage.architecture_constraint_ids | id_array) and
     (.subject.repositories | type == "object") and
     all(.subject.repositories | to_entries[];
       (.key | valid_id) and
       (.value | type == "string" and test("^(commit|worktree):[^\\r\\n]+$"))
+    ) and
+    (. as $record |
+      all($record.coverage.repository_ids[];
+        . as $id | $record.subject.repositories[$id] != null
+      )
     ) and
     (.policy_version | type == "string" and length > 0) and
     (.provider_config_digest | type == "string" and length > 0) and

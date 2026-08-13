@@ -87,7 +87,7 @@ _quality_policy_structure_is_valid() {
       type == "object" and
       only_keys([
         "id", "decisions", "when", "evidence_types", "providers",
-        "coverage", "required_result"
+        "provider_strategy", "coverage", "required_result"
       ]) and
       (.id | nonempty_string) and
       (.decisions | string_array) and
@@ -95,6 +95,11 @@ _quality_policy_structure_is_valid() {
       (.when.impacts_any | string_array) and
       (.evidence_types | string_array) and
       (.providers | string_array) and
+      (
+        (. | has("provider_strategy") | not) or
+        .provider_strategy == "all" or
+        .provider_strategy == "any"
+      ) and
       (.coverage | type == "object" and only_keys(["claims", "architecture"])) and
       (.coverage.claims == "none" or .coverage.claims == "all") and
       (
@@ -208,6 +213,18 @@ validate_quality_policy() {
   ' "$policy_path")"
   if [[ -n "$duplicate_id" ]]; then
     _quality_policy_error "duplicate gate id: $duplicate_id"
+    return 1
+  fi
+
+  invalid_reference="$(jq -r '
+    [.gates[]
+      | select((.providers | length) > 1 and (has("provider_strategy") | not))
+      | .id
+    ] | first // empty
+  ' "$policy_path")"
+  if [[ -n "$invalid_reference" ]]; then
+    _quality_policy_error \
+      "multi-provider gate requires provider_strategy: $invalid_reference"
     return 1
   fi
 
