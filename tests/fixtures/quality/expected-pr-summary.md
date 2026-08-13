@@ -14,7 +14,7 @@
 ### Applicable evidence
 
 - `documentation`: `ready`; evidence `EV-docs`
-- `tests`: `failed`; evidence `EV-tests`
+- `tests`: `failed`; evidence `EV-tests-a`, `EV-tests-b`
 - `visual`: `blocked`; evidence `EV-visual`
 
 ### Failures, blockers, and gaps

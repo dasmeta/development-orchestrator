@@ -13,7 +13,7 @@ cat > "$feature_dir/state/readiness.json" <<'JSON'
 {
  "schema_version":"1","feature_id":"FEAT-0001","decision":"merge-ready","status":"blocked","subject_fingerprint":"git-blob:scope","evaluated_at":"2026-08-13T02:00:00Z",
  "gates":[
-  {"id":"tests","status":"failed","applicability":"required","reason":"configured_impact_match","evidence_id":"EV-tests","waiver":null,"findings":[]},
+  {"id":"tests","status":"failed","applicability":"required","reason":"configured_impact_match","evidence_id":null,"evidence_ids":["EV-tests-a","EV-tests-b"],"waiver":null,"findings":[]},
   {"id":"visual","status":"blocked","applicability":"required","reason":"configured_impact_match","evidence_id":"EV-visual","waiver":null,"findings":[]},
   {"id":"documentation","status":"ready","applicability":"required","reason":"configured_impact_match","evidence_id":"EV-docs","waiver":null,"findings":[]}
  ],
@@ -35,6 +35,10 @@ assert_contains "$feature_dir/state/readiness.md" "Architecture conformance"
 assert_contains "$feature_dir/state/readiness.md" "ARCH-ADVISORY"
 assert_contains "$feature_dir/state/pr-summary.md" "commit:abc"
 assert_contains "$feature_dir/state/pr-summary.md" "WV-1"
+for evidence_id in EV-tests-a EV-tests-b; do
+  assert_contains "$feature_dir/state/readiness.md" "$evidence_id"
+  assert_contains "$feature_dir/state/pr-summary.md" "$evidence_id"
+done
 cmp "$repo_root/tests/fixtures/quality/expected-readiness.md" \
   "$feature_dir/state/readiness.md"
 cmp "$repo_root/tests/fixtures/quality/expected-pr-summary.md" \

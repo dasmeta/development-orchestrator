@@ -21,7 +21,7 @@
 ## Gate results
 
 - `documentation` — `ready` (configured_impact_match); evidence: `EV-docs`
-- `tests` — `failed` (configured_impact_match); evidence: `EV-tests`
+- `tests` — `failed` (configured_impact_match); evidence: `EV-tests-a`, `EV-tests-b`
 - `visual` — `blocked` (configured_impact_match); evidence: `EV-visual`
 
 ## Documentation disposition
@@ -44,5 +44,6 @@
 ## Evidence
 
 - `EV-docs` satisfies `documentation`
-- `EV-tests` satisfies `tests`
+- `EV-tests-a` satisfies `tests`
+- `EV-tests-b` satisfies `tests`
 - `EV-visual` satisfies `visual`
