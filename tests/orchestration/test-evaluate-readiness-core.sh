@@ -97,10 +97,12 @@ jq -e '.findings | any(.id == "EVIDENCE_SUBJECT_MISMATCH:tests")' "$feature_dir/
 
 printf '{bad json' > "$feature_dir/evidence/malformed.json"
 evaluate
+jq -e '.status == "incomplete"' "$feature_dir/state/readiness.json" >/dev/null
 jq -e '.findings | any(.id == "EVIDENCE_MALFORMED:malformed.json")' "$feature_dir/state/readiness.json" >/dev/null
 
 printf '{"schema_version":"1"}\n' > "$feature_dir/evidence/malformed-object.json"
 evaluate
+jq -e '.status == "incomplete"' "$feature_dir/state/readiness.json" >/dev/null
 jq -e '.findings | any(.id == "EVIDENCE_MALFORMED:malformed-object.json")' "$feature_dir/state/readiness.json" >/dev/null
 
 rm "$feature_dir/evidence/malformed.json" "$feature_dir/evidence/malformed-object.json" "$feature_dir/evidence/EV-tests-wrong.json"

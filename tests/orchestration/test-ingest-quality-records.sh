@@ -118,6 +118,11 @@ jq '.evidence_id = "EV-absolute" | .artifacts = [{reference:"/tmp/result.log",di
 assert_command_fails ingest_evidence \
   repository-tests ci run-2 "$tmp_dir/absolute-artifact.json"
 
+jq '.evidence_id = "EV-windows-absolute" | .artifacts = [{reference:"C:\\\\temp\\\\result.log",digest:null,media_type:null}]' \
+  "$tmp_dir/evidence.json" > "$tmp_dir/windows-absolute-artifact.json"
+assert_command_fails ingest_evidence \
+  repository-tests ci run-2 "$tmp_dir/windows-absolute-artifact.json"
+
 jq '
   .evidence_id = "EV-authority-1" |
   .evidence_type = "waiver-approval"

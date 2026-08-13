@@ -104,7 +104,8 @@ validate_evidence_record() {
   if jq -e '
     any(.artifacts[]?;
       (.reference | startswith("/")) or
-      (.reference | startswith("file://"))
+      (.reference | startswith("file://")) or
+      (.reference | test("^[A-Za-z]:[\\\\/]"))
     )
   ' "$input_path" >/dev/null; then
     quality_record_error "absolute local artifact references are not portable"

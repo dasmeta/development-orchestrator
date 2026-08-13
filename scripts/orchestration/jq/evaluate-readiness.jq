@@ -136,11 +136,12 @@ def finding($id; $class; $owner; $gate_id; $message):
  $uncommitted_findings +
  ($gp.findings // [])) as $findings |
 ($gate_results | map(.status | status_rank) | max // 0) as $rank |
+((($malformed_files|length)>0) or (($gp.findings // [] | length)>0)) as $derived_input_incomplete |
 {
   schema_version:"1",
   feature_id:$s.feature_id,
   decision:$decision,
-  status:(if $rank == 3 then "failed" elif $rank == 2 then "blocked" elif ($rank == 1 or $architecture_source_unresolved or ($uncommitted_findings|length)>0) then "incomplete" else "ready" end),
+  status:(if $rank == 3 then "failed" elif $rank == 2 then "blocked" elif ($rank == 1 or $architecture_source_unresolved or $derived_input_incomplete or ($uncommitted_findings|length)>0) then "incomplete" else "ready" end),
   subject_fingerprint:$gp.subject_fingerprint,
   evaluated_at:$now,
   gates:($gate_results | sort_by(.id)),
