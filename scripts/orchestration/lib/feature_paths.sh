@@ -39,3 +39,7 @@ feature_readiness_path() {
 feature_repair_brief_path() {
   echo "$1/state/repair-brief.json"
 }
+
+feature_run_history_dir() {
+  echo "$1/state/runs"
+}

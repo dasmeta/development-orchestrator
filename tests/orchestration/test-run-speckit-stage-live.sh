@@ -59,6 +59,8 @@ CODEX_STDIN_FILE="$stdin_file" \
   bash "$repo_root/scripts/orchestration/run-speckit-stage.sh" \
     --feature-dir "$feature_dir" \
     --stage definition \
+    --run-id live-run-1 \
+    --sandbox workspace-write \
     --config "$config_file"
 
 log_path="$feature_dir/state/run-log.json"
@@ -71,3 +73,5 @@ assert_contains "$args_file" "$downstream_repo"
 assert_contains "$stdin_file" "speckit-specify"
 assert_contains "$stdin_file" "FEAT-0001"
 assert_contains "$stdin_file" "Branch previews for product delivery"
+assert_file_exists "$feature_dir/state/runs/live-run-1.json"
+jq -e '.exit_status==0 and .run_id=="live-run-1"' "$feature_dir/state/run-log.json" >/dev/null
