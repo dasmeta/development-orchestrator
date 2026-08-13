@@ -18,6 +18,7 @@ feature state, orchestration scripts, and mergeability evaluation.
 
 | Path | Ownership |
 | --- | --- |
+| `AGENTS.md` | Generic repository routing, lifecycle, and completion instructions loaded by Codex. |
 | `config/workspace.example.json` | Example child repository, stage, skill, and merge-gate configuration for template demos and tests. |
 | `schemas/` | Root feature-state schemas. |
 | `scripts/orchestration/` | Workspace orchestration commands and helpers. |
@@ -85,6 +86,10 @@ Orchestration commands resolve workspace configuration in this order:
 | Feature manifest | `features/<feature-id>/state/manifest.json` |
 | GitHub state snapshot | `features/<feature-id>/state/github-state.json` |
 | Stage run log | `features/<feature-id>/state/run-log.json` |
+| Feature scope and source references | `features/<feature-id>/{scope,claims,architecture}.json` |
+| Immutable evidence and waivers | `features/<feature-id>/{evidence,waivers}/` |
+| Readiness and repair state | `features/<feature-id>/state/{gate-plan,readiness,repair-brief}.json` |
+| Readiness and PR reports | `features/<feature-id>/state/{readiness,pr-summary}.md` |
 | Handoff packages | Product fork-defined child paths, usually generated from `templates/handoffs/` |
 
 ## Validation Commands
@@ -103,3 +108,5 @@ bash scripts/orchestration/run-ci-tests.sh
 - Runtime implementation must remain downstream of approved intent and shared
   contracts where applicable.
 - Direct pushes to the default branch require explicit operator instruction.
+- Agents cannot author human authority, waivers, approved claims, or approved
+  architecture constraints through the quality loop.

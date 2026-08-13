@@ -48,6 +48,7 @@ jq -e '.findings | any(.id == "ARCHITECTURE_SOURCE_UNRESOLVED")' "$feature_dir/s
 cat > "$feature_dir/architecture.json" <<'JSON'
 {"schema_version":"1","feature_id":"FEAT-TRUST","sources":[{"id":"ARCH-SOURCE","repository_id":"architecture","revision":"commit:1","path":"adr.md","content_digest":"git-blob:source","approval_evidence_id":null}],"constraints":[{"id":"ARCH-1","source_id":"ARCH-SOURCE","section":"API","content_digest":"git-blob:constraint","impacts":["architecture-sensitive"],"enforcement":"blocking","approval_evidence_id":null},{"id":"ARCH-ADVISORY","source_id":"ARCH-SOURCE","section":"Style","content_digest":"git-blob:advisory","impacts":["architecture-sensitive"],"enforcement":"advisory","approval_evidence_id":null}]}
 JSON
+rm "$feature_dir/evidence/EV-self.json"; write_arch_evidence EV-self implementation '["ARCH-1"]'
 evaluate
 assert_equals incomplete "$(jq -r .status "$feature_dir/state/readiness.json")"
 jq -e '.findings | any(.id == "EVIDENCE_TRUST_INVALID:architecture")' "$feature_dir/state/readiness.json" >/dev/null

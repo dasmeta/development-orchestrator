@@ -74,7 +74,8 @@ jq -e '.repositories == ["intent","implementation","validation"]' \
 jq -e '.mergeability.ready == false' "$feature_dir/state/manifest.json" >/dev/null
 
 bash "$repo_root/scripts/orchestration/render-manifest.sh" \
-  "$feature_dir"
+  "$feature_dir" \
+  --config "$repo_root/config/workspace.example.json"
 
 jq -e '.repositories == ["intent","contracts","implementation","validation"]' \
   "$feature_dir/state/manifest.json" >/dev/null
