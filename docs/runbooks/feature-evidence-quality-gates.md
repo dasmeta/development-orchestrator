@@ -33,6 +33,34 @@ executable that receives the canonical record on stdin and the
 The command owns durable storage and idempotency and must return nonzero when
 storage is unavailable.
 
+## Repository and provider aggregation
+
+Every evidence record declares a nonempty `coverage.repository_ids` list and
+is evaluated only for those repositories at their captured subjects. A gate
+targeting several repositories requires current valid evidence for each one;
+a later pass for one repository cannot hide an earlier failure or missing
+result for another.
+
+Every gate with multiple providers declares `provider_strategy` explicitly:
+
+- `all` requires every configured provider for every repository it targets;
+- `any` accepts a valid passing alternative, but a valid failure still fails
+  the gate rather than being hidden by another provider's pass.
+
+Command and independent-verifier runners execute once per targeted repository.
+Verifier prompts contain the exact captured base-to-head diff. For worktree
+subjects the runner also checks that the live fingerprint still matches and
+includes untracked files in the reviewed diff.
+
+Evidence created before repository coverage was required remains readable for
+diagnostics but cannot satisfy current gates. Recollect it against the current
+subjects instead of modifying immutable historical records.
+
+GitHub snapshot collection is rerunnable: generated payloads are stored under
+`state/provider-runs/`, outside snapshot discovery. A snapshot containing no
+checks produces `blocked` source-control evidence with
+`SOURCE_CONTROL_CHECKS_EMPTY`; an empty check set is never a pass.
+
 ## Policy modes
 
 - `off`: legacy commands apply; the quality cycle requires `--force-evaluate`.
