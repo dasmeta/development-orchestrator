@@ -22,6 +22,7 @@ done
 assert_contains "$github_ci" "pull_request:"
 assert_contains "$github_ci" "push:"
 assert_contains "$github_ci" "- main"
+assert_contains "$github_ci" "sudo apt-get install -y ripgrep"
 
 assert_contains "$gitlab_ci" 'CI_PIPELINE_SOURCE == "merge_request_event"'
 assert_contains "$gitlab_ci" 'CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
