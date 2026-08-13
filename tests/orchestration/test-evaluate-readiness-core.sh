@@ -53,7 +53,7 @@ write_evidence() {
   jq -n --arg id "$id" --arg type "$type" --arg provider "$provider" --arg result "$result" \
     --arg digest "$(provider_digest "$provider")" --arg subject "$subject" --argjson claims "$claims" --argjson expires "$expires" '
     {schema_version:"1",evidence_id:$id,feature_id:"FEAT-0001",evidence_type:$type,provider_id:$provider,
-     producer:{id:"ci",role:"verification",run_id:$id},coverage:{claim_ids:$claims,architecture_constraint_ids:[]},
+     producer:{id:"ci",role:"verification",run_id:$id},coverage:{repository_ids:["app"],claim_ids:$claims,architecture_constraint_ids:[]},
      subject:{repositories:{app:$subject}},policy_version:"1",provider_config_digest:$digest,result:$result,outcome:"completed",
      environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:00:00Z",expires_at:$expires,artifacts:[],findings:[],known_gaps:[]}' \
     > "$feature_dir/evidence/$id.json"

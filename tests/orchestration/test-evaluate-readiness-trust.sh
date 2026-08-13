@@ -36,7 +36,7 @@ digest="$(jq -cS '.providers.verifier' "$tmp_dir/config/policy.json" | git hash-
 write_arch_evidence() {
   local id="$1" role="$2" constraints="$3"
   jq -n --arg id "$id" --arg role "$role" --arg digest "$digest" --argjson constraints "$constraints" '
-   {schema_version:"1",evidence_id:$id,feature_id:"FEAT-TRUST",evidence_type:"architecture-conformance",provider_id:"verifier",producer:{id:"agent",role:$role,run_id:$id},coverage:{claim_ids:[],architecture_constraint_ids:$constraints},subject:{repositories:{app:"commit:abc"}},policy_version:"1",provider_config_digest:$digest,result:"passed",outcome:"completed",environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:00:00Z",expires_at:null,artifacts:[],findings:[],known_gaps:[]}' > "$feature_dir/evidence/$id.json"
+   {schema_version:"1",evidence_id:$id,feature_id:"FEAT-TRUST",evidence_type:"architecture-conformance",provider_id:"verifier",producer:{id:"agent",role:$role,run_id:$id},coverage:{repository_ids:["app"],claim_ids:[],architecture_constraint_ids:$constraints},subject:{repositories:{app:"commit:abc"}},policy_version:"1",provider_config_digest:$digest,result:"passed",outcome:"completed",environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:00:00Z",expires_at:null,artifacts:[],findings:[],known_gaps:[]}' > "$feature_dir/evidence/$id.json"
 }
 evaluate() { bash "$repo_root/scripts/orchestration/evaluate-readiness.sh" --feature-dir "$feature_dir" --config "$tmp_dir/config/workspace.json" --decision merge-ready --now 2026-08-13T02:00:00Z; }
 
@@ -59,7 +59,7 @@ jq -e '.advisory_architecture_constraint_ids == ["ARCH-ADVISORY"]' "$feature_dir
 
 write_arch_evidence EV-implementation-run implementation '["ARCH-1"]'
 rm "$feature_dir/evidence/EV-verifier.json"
-jq -n --arg digest "$digest" '{schema_version:"1",evidence_id:"EV-same-run",feature_id:"FEAT-TRUST",evidence_type:"architecture-conformance",provider_id:"verifier",producer:{id:"verifier",role:"verification",run_id:"EV-implementation-run"},coverage:{claim_ids:[],architecture_constraint_ids:["ARCH-1"]},subject:{repositories:{app:"commit:abc"}},policy_version:"1",provider_config_digest:$digest,result:"passed",outcome:"completed",environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:01:00Z",expires_at:null,artifacts:[],findings:[],known_gaps:[]}' > "$feature_dir/evidence/EV-same-run.json"
+jq -n --arg digest "$digest" '{schema_version:"1",evidence_id:"EV-same-run",feature_id:"FEAT-TRUST",evidence_type:"architecture-conformance",provider_id:"verifier",producer:{id:"verifier",role:"verification",run_id:"EV-implementation-run"},coverage:{repository_ids:["app"],claim_ids:[],architecture_constraint_ids:["ARCH-1"]},subject:{repositories:{app:"commit:abc"}},policy_version:"1",provider_config_digest:$digest,result:"passed",outcome:"completed",environment:{id:"local",fixture:null},collected_at:"2026-08-13T01:01:00Z",expires_at:null,artifacts:[],findings:[],known_gaps:[]}' > "$feature_dir/evidence/EV-same-run.json"
 evaluate
 assert_equals incomplete "$(jq -r .status "$feature_dir/state/readiness.json")"
 jq -e '.findings | any(.id == "EVIDENCE_TRUST_INVALID:architecture")' "$feature_dir/state/readiness.json" >/dev/null

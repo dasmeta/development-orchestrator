@@ -71,6 +71,7 @@ jq -e '
   .impacts.all == ["architecture-sensitive","documentation","escaped-defect","implementation","ui"] and
   (.gates | map(.id)) == ["docs","tests","visual"] and
   all(.gates[]; .applicability == "required") and
+  all(.gates[]; .provider_strategy == "all") and
   (.impact_sources | map(.rule_id)) == ["docs-path","implementation-role","ui-path"] and
   (.subject_fingerprint | startswith("git-blob:"))
 ' "$plan" >/dev/null

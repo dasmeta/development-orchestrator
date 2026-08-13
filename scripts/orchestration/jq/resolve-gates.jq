@@ -51,6 +51,7 @@ def rule_matches($scope; $rule):
           decisions: ($gate.decisions | unique | sort),
           evidence_types: ($gate.evidence_types | unique | sort),
           providers: ($gate.providers | unique | sort),
+          provider_strategy: ($gate.provider_strategy // "all"),
           coverage: $gate.coverage,
           required_result: $gate.required_result
         }
