@@ -1,0 +1,4 @@
+interface:
+  display_name: "Development Definition"
+  short_description: "Prepare a work item for Definition review"
+  default_prompt: "Use $development-definition to define or resume this work item under the workspace's delivery policy."
